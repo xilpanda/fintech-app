@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fintech Wallet Dashboard</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>Fintech Wallet</h1>
+        <p class="subtitle">Operational dashboard for users and transfers</p>
+      </div>
+      <form id="api-settings-form" class="api-settings">
+        <label for="api-base-url">API Base URL</label>
+        <input
+          id="api-base-url"
+          type="url"
+          placeholder="http://localhost:8000"
+          required
+        />
+        <button type="submit">Save</button>
+      </form>
+    </header>
+
+    <main class="layout">
+      <section class="card metrics">
+        <h2>Overview</h2>
+        <div class="metrics-grid">
+          <article>
+            <h3>Total Users</h3>
+            <p id="metric-users">0</p>
+          </article>
+          <article>
+            <h3>Total Balance</h3>
+            <p id="metric-balance">$0.00</p>
+          </article>
+          <article>
+            <h3>Total Transfers</h3>
+            <p id="metric-transfers">0</p>
+          </article>
+          <article>
+            <h3>Health</h3>
+            <p id="metric-health" class="status status-unknown">Unknown</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h2>Users</h2>
+          <button id="refresh-users">Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Balance</th>
+              </tr>
+            </thead>
+            <tbody id="users-table"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card form-card">
+        <h2>Create User</h2>
+        <form id="create-user-form">
+          <label for="user-name">Name</label>
+          <input id="user-name" name="name" type="text" required maxlength="120" />
+          <label for="user-balance">Initial Balance</label>
+          <input
+            id="user-balance"
+            name="initial_balance"
+            type="number"
+            min="0"
+            step="0.01"
+            value="100"
+            required
+          />
+          <button type="submit">Create User</button>
+        </form>
+      </section>
+
+      <section class="card form-card">
+        <h2>Transfer</h2>
+        <form id="transfer-form">
+          <label for="from-user">From User</label>
+          <select id="from-user" name="from_id" required></select>
+          <label for="to-user">To User</label>
+          <select id="to-user" name="to_id" required></select>
+          <label for="transfer-amount">Amount</label>
+          <input
+            id="transfer-amount"
+            name="amount"
+            type="number"
+            min="0.01"
+            step="0.01"
+            required
+          />
+          <button type="submit">Send Transfer</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h2>Recent Transfers</h2>
+          <button id="refresh-transfers">Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Txn ID</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Amount</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="transfers-table"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
