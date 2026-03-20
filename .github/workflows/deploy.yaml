@@ -16,10 +16,10 @@ jobs:
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
 
-     - name: Set kubeconfig
-       run: |
-         mkdir -p ~/.kube
-         echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+      - name: Set kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
 
       - name: Deploy to cluster
         run: |
