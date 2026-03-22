@@ -7,23 +7,14 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-
-      - name: Set kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > ~/.kube/config
-
-      - name: Debug kubeconfig
-        run: |
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d | head -5
+        uses: azure/setup-kubectl@v4
 
       - name: Deploy to cluster
         run: |
