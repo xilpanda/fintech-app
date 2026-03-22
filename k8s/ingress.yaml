@@ -3,6 +3,7 @@ kind: Ingress
 metadata:
   name: fintech-ingress
 spec:
+  ingressClassName: nginx   # 🔥 KLJUČNO
   rules:
     - host: frontend.local
       http:
