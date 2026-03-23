@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  IMAGE_NAME: backend
+  IMAGE_NAME: linuxspec-backend
 
 jobs:
   deploy:
@@ -27,7 +27,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG ./backend
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG ./linuxspec-backend
 
       - name: Push Docker image
         run: |
@@ -43,9 +43,9 @@ jobs:
 
       - name: Wait for rollout
         run: |
-          kubectl rollout status deployment/backend
+          kubectl rollout status deployment/linuxspec-backend
 
       - name: Rollback on failure
         if: failure()
         run: |
-          kubectl rollout undo deployment/backend
+          kubectl rollout undo deployment/linuxspec-backend

@@ -1,36 +1,29 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres
+  name: mongodb
 spec:
   selector:
-    app: postgres
+    app: mongodb
   ports:
-    - port: 5432
+    - port: 27017
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgres
+  name: mongodb
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: postgres
+      app: mongodb
   template:
     metadata:
       labels:
-        app: postgres
+        app: mongodb
     spec:
       containers:
-        - name: postgres
-          image: postgres:15
-          env:
-            - name: POSTGRES_USER
-              value: user
-            - name: POSTGRES_PASSWORD
-              value: password
-            - name: POSTGRES_DB
-              value: fintech
+        - name: mongodb
+          image: mongo:7
           ports:
-            - containerPort: 5432
+            - containerPort: 27017
