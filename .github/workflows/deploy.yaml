@@ -6,7 +6,8 @@ on:
       - main
 
 env:
-  IMAGE_NAME: linuxspec-backend
+  BACKEND_IMAGE_NAME: linuxspec-backend
+  FRONTEND_IMAGE_NAME: linuxspec-frontend
 
 jobs:
   deploy:
@@ -27,15 +28,28 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG ./linuxspec-backend
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG ./linuxspec-backend
 
-      - name: Push Docker image
+      - name: Push backend image
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG
+
+      - name: Build frontend image
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_API_BASE_URL=https://api.linuxspec.com \
+            --build-arg NEXT_PUBLIC_CALENDLY_URL=https://calendly.com/linuxspec/intro-call \
+            -t ${{ secrets.DOCKER_USERNAME }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG \
+            ./linuxspec-frontend
+
+      - name: Push frontend image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG
 
       - name: Update deployment image
         run: |
-          sed -i "s|image: .*|image: ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG|g" k8s/backend-deployment.yaml
+          sed -i "s|image: .*|image: ${{ secrets.DOCKER_USERNAME }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG|g" k8s/backend-deployment.yaml
+          sed -i "s|image: .*|image: ${{ secrets.DOCKER_USERNAME }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG|g" k8s/frontend-deployment.yaml
 
       - name: Apply Kubernetes manifests
         run: |
@@ -44,8 +58,10 @@ jobs:
       - name: Wait for rollout
         run: |
           kubectl rollout status deployment/linuxspec-backend
+          kubectl rollout status deployment/linuxspec-frontend
 
       - name: Rollback on failure
         if: failure()
         run: |
           kubectl rollout undo deployment/linuxspec-backend
+          kubectl rollout undo deployment/linuxspec-frontend || true

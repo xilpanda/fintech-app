@@ -1,21 +1,31 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: linuxspec-ingress
+  name: fintech-ingress
 spec:
   ingressClassName: nginx
   rules:
-    - host: api.linuxspec.com
+    - host: linuxspec.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: linuxspec-backend
+                name: linuxspec-frontend
                 port:
                   number: 80
-    - host: web-test.linuxspec.com
+    - host: www.linuxspec.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: linuxspec-frontend
+                port:
+                  number: 80
+    - host: frontend.linuxspec.com
       http:
         paths:
           - path: /
