@@ -1,4 +1,4 @@
-# DevOps Homelab Platform - Kubernetes, CI/CD, GitOps
+# Kubernetes, CI/CD, GitOps
 
 ## Overview
 
