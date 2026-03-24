@@ -18,6 +18,10 @@ Technology baseline:
 Goal:
 - Run the application and validate how infrastructure, deployment, and operations behave under production-style conditions.
 
+## Live Site
+
+- Production website: https://linuxspec.com/
+
 ## Architecture (High-Level)
 
 ```text
