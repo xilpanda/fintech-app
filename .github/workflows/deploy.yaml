@@ -60,6 +60,14 @@ jobs:
           kubectl rollout status deployment/linuxspec-backend
           kubectl rollout status deployment/linuxspec-frontend
 
+      - name: Smoke test services
+        run: |
+          kubectl run ci-smoke --image=curlimages/curl:8.10.1 --restart=Never --command -- sh -c \
+            "curl -fsS http://linuxspec-backend/health/ready && curl -fsS http://linuxspec-frontend/" 
+          kubectl wait --for=condition=Ready pod/ci-smoke --timeout=60s || true
+          kubectl logs ci-smoke
+          kubectl delete pod ci-smoke --ignore-not-found=true
+
       - name: Rollback on failure
         if: failure()
         run: |

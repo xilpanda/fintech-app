@@ -4,6 +4,11 @@ metadata:
   name: linuxspec-ingress
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/hsts: "true"
+    nginx.ingress.kubernetes.io/hsts-max-age: "31536000"
+    nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
+    nginx.ingress.kubernetes.io/hsts-preload: "true"
 spec:
   ingressClassName: nginx
   tls:
@@ -19,15 +24,5 @@ spec:
             backend:
               service:
                 name: linuxspec-backend
-                port:
-                  number: 80
-    - host: web-test.linuxspec.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: linuxspec-frontend
                 port:
                   number: 80
