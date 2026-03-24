@@ -2,8 +2,17 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: fintech-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - linuxspec.com
+        - www.linuxspec.com
+        - frontend.linuxspec.com
+      secretName: linuxspec-web-tls
   rules:
     - host: linuxspec.com
       http:
