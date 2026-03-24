@@ -1,105 +1,244 @@
-# linuxspec
+# DevOps Homelab Platform - Kubernetes, CI/CD, GitOps
 
-`linuxspec` is a full-stack application for lead generation and lead qualification for FinOps and fintech engineering services.
+## Overview
 
-The application includes:
-- a landing page with a clear service offering
-- an ROI calculator for estimating potential cloud savings
-- a multi-step lead form
-- a backend API for storing and managing leads
-- basic anti-spam and rate-limit protection
+This project is a production-like DevOps platform built in a local homelab environment to simulate real infrastructure and delivery workflows.
 
-## What the application does
+Technology baseline:
+- Proxmox virtualization
+- Kubernetes kubeadm cluster
+- Dockerized frontend and backend applications
+- Stateful database workload with persistent storage
+- CI/CD pipeline using GitHub Actions with a self-hosted runner
+- NGINX Ingress for traffic routing
+- TLS management with cert-manager
+- Monitoring stack with Prometheus and Grafana
+- GitOps-ready operating model with ArgoCD
 
-The frontend provides:
-- a value proposition focused on reducing cloud costs and building fintech systems
-- an ROI calculator that estimates monthly and yearly savings ranges
-- a two-step lead form (cloud cost -> contact details)
+Goal:
+- Run the application and validate how infrastructure, deployment, and operations behave under production-style conditions.
 
-The backend handles:
-- lead creation (`POST /api/leads`)
-- lead listing (`GET /api/leads`)
-- lead statistics (`GET /api/leads/stats`)
-- lead status updates (`PATCH /api/leads/:id/status`)
-- health check (`GET /health`)
-
-After a successful lead submission:
-- the lead is stored in MongoDB
-- the backend attempts to send admin and auto-reply emails (if SMTP is configured)
-
-## Technologies
-
-- Frontend: Next.js 14, React 18, Tailwind CSS
-- Backend: Node.js, Express, Mongoose
-- Database: MongoDB
-- Integrations: Nodemailer (email), Express Rate Limit (anti-abuse)
-- Operations: GitHub Actions and Kubernetes for CI/CD and deployment
-
-## Project structure
+## Architecture (High-Level)
 
 ```text
-linuxspec-frontend/   Next.js landing page + lead form + ROI calculator
-linuxspec-backend/    Express API + Mongo models + email service
+                +----------------------------+
+                |        Git Repository      |
+                |   Source of Truth: Code    |
+                +-------------+--------------+
+                              |
+                              | git push
+                              v
+                +----------------------------+
+                |   GitHub Actions (CI/CD)   |
+                |     Self-hosted Runner     |
+                +-------------+--------------+
+                              |
+                              | build/push/apply
+                              v
+        +--------------------------------------------+
+        |            Kubernetes Cluster              |
+        |                                            |
+        |  +--------------+      +----------------+  |
+        |  | Frontend     |      | Backend API    |  |
+        |  | Deployment   |      | Deployment     |  |
+        |  +------+-------+      +--------+-------+  |
+        |         |                       |          |
+        |         v                       v          |
+        |      Service                Service        |
+        |         +-----------+-----------+          |
+        |                     |                      |
+        |                     v                      |
+        |        NGINX Ingress Controller            |
+        |                     |                      |
+        |                     v                      |
+        |             HTTP / HTTPS Traffic           |
+        |                                            |
+        |      Stateful DB + PVC + Secrets           |
+        +--------------------------------------------+
 ```
 
-## Local development
+## Infrastructure Layer
 
-### 1) Backend
+### Virtualization
+
+- Cluster runs on virtual machines provisioned in Proxmox
+- Multi-node topology for realistic scheduling and failover behavior
+- Container runtime: containerd
+- Linux-based worker and control plane nodes
+
+### Cluster Foundation
+
+- Kubernetes installed with kubeadm
+- Standard control plane and node components
+- Namespace-scoped application workloads with declarative manifests
+
+## Kubernetes Layer
+
+### Core Components
+
+- kube-apiserver
+- scheduler
+- controller-manager
+- kubelet
+
+### Workloads
+
+- Frontend (stateless web workload)
+- Backend API (service workload)
+- Database (stateful workload with persistent volumes)
+
+## Deployment Model
+
+Kubernetes is operated declaratively:
+
+- Missing resource: created
+- Existing resource with change: reconciled
+- Existing resource without change: unchanged
+
+This supports idempotent deployments and repeatable CI/CD runs.
+
+## Networking and Exposure
+
+### Internal Communication
+
+- `ClusterIP` services
+- DNS-based service discovery inside the cluster
+
+### External Exposure
+
+- Initial stage: `NodePort` for controlled testing
+- Production path: NGINX Ingress Controller
+
+Ingress responsibilities:
+- Layer 7 routing
+- Host-based traffic separation
+- TLS termination
+
+## Security Layer
+
+### Secrets Management
+
+- Sensitive values are stored in Kubernetes Secrets
+- No hardcoded credentials in manifests
+- Rotation can be done without rebuilding images
+
+### Transport Security
+
+- Certificates issued and renewed through cert-manager
+- HTTPS termination at ingress layer
+- Security headers and traffic policy managed through ingress annotations
+
+## Data Layer (Stateful)
+
+### Persistent Workload
+
+- Database runs as a stateful workload in the cluster
+- Data persistence is provided through:
+  - PersistentVolume (PV)
+  - PersistentVolumeClaim (PVC)
+
+This design protects data through pod restarts and rolling updates.
+
+## Scalability
+
+### Horizontal Pod Autoscaler
+
+- Scale decisions can be driven by CPU or custom metrics
+- Backend workload can scale out under increased load
+- Scale-in behavior is controlled to avoid instability
+
+## Traffic Protection
+
+### Ingress Rate Limiting
+
+- Request rate limiting can be enforced via NGINX annotations
+- Burst and sustained limits protect backend endpoints
+- Reduces abuse risk and improves service stability
+
+## Observability
+
+### Monitoring Stack
+
+- Prometheus for metrics collection
+- Grafana for dashboards and visualization
+
+Operational visibility typically includes:
+- CPU and memory utilization
+- pod health and restarts
+- deployment and cluster status
+
+## CI/CD Pipeline
+
+### Delivery Flow
+
+```text
+git push -> GitHub Actions -> self-hosted runner -> kubectl -> Kubernetes
+```
+
+### Pipeline Characteristics
+
+- Automated image build and publish
+- Declarative manifest apply
+- Rollout status verification
+- Post-deploy smoke checks
+- Safe re-deploy behavior due to idempotent model
+
+## Deployment Strategy
+
+### Rolling Updates
+
+- Controlled rollout with minimal disruption
+- Health probes gate traffic readiness
+
+### Rollback
 
 ```bash
-cd linuxspec-backend
-npm install
-cp .env.example .env
-npm run dev
+kubectl rollout undo deployment/<name>
 ```
 
-Default URL: `http://localhost:5000`
+Rollback enables fast recovery when a deployment fails validation.
 
-Required backend environment variables:
-- `PORT`
-- `FRONTEND_ORIGIN`
-- `MONGO_URI`
-- `ADMIN_API_KEY` (for admin routes)
+## Debug and Operations
 
-Optional email environment variables:
-- `EMAIL`
-- `EMAIL_PASS`
-
-### 2) Frontend
+Common operational commands:
 
 ```bash
-cd linuxspec-frontend
-npm install
-cp .env.example .env.local
-npm run dev
+kubectl get pods
+kubectl get deploy,svc,ingress
+kubectl logs <pod-name>
+kubectl describe pod <pod-name>
+kubectl rollout status deployment/<name>
 ```
 
-Default URL: `http://localhost:3000`
+This reflects a standard SRE troubleshooting workflow.
 
-Client environment variables:
-- `NEXT_PUBLIC_API_BASE_URL` (for example `http://localhost:5000`)
-- `NEXT_PUBLIC_CALENDLY_URL` (optional)
+## GitOps Direction
 
-## API overview
+Operating model transition:
 
-- `POST /api/leads`
-  - input: `name`, `company`, `email`, `message`, `monthlyCost`, `honeypot`
-  - output: `{ success: true, id }`
+```text
+manual apply -> GitOps reconciliation
+```
 
-- `GET /api/leads`
-  - query: `limit`, `status`, `q`
-  - header: `x-admin-key` (if `ADMIN_API_KEY` is defined)
+Target state with ArgoCD:
+- Git as the single source of truth
+- automated sync to cluster state
+- drift detection and self-healing behavior
 
-- `GET /api/leads/stats`
-  - returns lead counts grouped by status
+## Key Learnings
 
-- `PATCH /api/leads/:id/status`
-  - input: `{ status: "new" | "contacted" | "won" | "lost" }`
+- Infrastructure includes virtualization, networking, and platform layers
+- Declarative systems require strong verification discipline
+- CI/CD should be idempotent, observable, and rollback-safe
+- Production readiness depends on persistence, security, monitoring, and controlled rollouts
 
-- `GET /health`
-  - output: `{ status: "OK" }`
+## Conclusion
 
-## Production note
+This repository demonstrates a production-grade DevOps environment simulation:
 
-This repository is intended to keep source code while build and deployment are handled through GitHub Actions and Kubernetes.
-Local runtime artifacts and dependency directories (`node_modules`, `.venv`, `__pycache__`) should not be versioned.
+- Multi-node Kubernetes operations
+- CI/CD with a self-hosted runner
+- Ingress-based exposure with TLS
+- Stateful workloads with persistent storage
+- Monitoring, scaling, and GitOps-ready architecture
+
