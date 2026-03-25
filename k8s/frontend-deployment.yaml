@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: linuxspec-frontend
-          image: xil01/linuxspec-frontend:manual-20260324a
+          image: xil01/linuxspec-frontend:43b394f
           ports:
             - containerPort: 3000
           readinessProbe:

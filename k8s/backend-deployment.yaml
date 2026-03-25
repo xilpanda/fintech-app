@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: linuxspec-backend
-          image: xil01/linuxspec-backend:manual-20260324a
+          image: xil01/linuxspec-backend:43b394f
           ports:
             - containerPort: 5000
           envFrom:
