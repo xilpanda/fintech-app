@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Linuxspec lion-inspired favicon">
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="#ffffff" stroke="#111111" stroke-width="12" />
+
+  <!-- Shield -->
+  <path
+    d="M128 42 L194 74 L184 150 C178 184 154 206 128 218 C102 206 78 184 72 150 L62 74 Z"
+    fill="#111111"
+  />
+
+  <!-- Mane accents -->
+  <path d="M94 94 L80 108 L84 124 L102 118 Z" fill="#ffffff" />
+  <path d="M162 94 L176 108 L172 124 L154 118 Z" fill="#ffffff" />
+
+  <!-- Eyes -->
+  <circle cx="108" cy="120" r="8" fill="#ffffff" />
+  <circle cx="148" cy="120" r="8" fill="#ffffff" />
+
+  <!-- Nose -->
+  <path d="M128 132 L116 146 H140 Z" fill="#ffffff" />
+
+  <!-- Muzzle -->
+  <path d="M104 154 C114 166 122 170 128 170 C134 170 142 166 152 154" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" />
+  <path d="M128 146 L128 160" stroke="#ffffff" stroke-width="8" stroke-linecap="round" />
+</svg>

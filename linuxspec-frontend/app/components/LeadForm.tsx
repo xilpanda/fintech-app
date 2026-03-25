@@ -55,15 +55,20 @@ export default function LeadForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="card mx-auto w-full max-w-2xl">
-      <h3 className="text-2xl font-semibold">Get Your Free Cost Analysis (24h)</h3>
-      <p className="mt-2 text-gray-400">
+    <form
+      onSubmit={onSubmit}
+      className="mx-auto w-full max-w-2xl rounded-2xl border border-[#dbe4f3] bg-white p-6 shadow-[0_12px_30px_rgba(10,37,64,0.08)]"
+    >
+      <h3 className="text-2xl font-semibold text-[#0a2540]">
+        Get Your Free FinOps and Infrastructure Audit (24h)
+      </h3>
+      <p className="mt-2 text-[#5b6c96]">
         Step {step}/2 - takes 30 seconds. No commitment.
       </p>
 
       {step === 1 ? (
         <div className="mt-6 space-y-3">
-          <label className="block text-sm text-gray-300">What is your monthly cloud cost (EUR)?</label>
+          <label className="block text-sm text-[#44527f]">What is your monthly cloud cost (EUR)?</label>
           <input
             required
             min={100}
@@ -71,32 +76,32 @@ export default function LeadForm() {
             type="number"
             value={monthlyCost}
             onChange={(e) => setMonthlyCost(e.target.value)}
-            className="w-full rounded-xl border border-gray-700 bg-[#0f172a] px-4 py-3"
+            className="w-full rounded-xl border border-[#ccdaee] bg-[#f8fbff] px-4 py-3 text-[#1a1f36]"
           />
           <button
             type="button"
             onClick={() => setStep(2)}
-            className="rounded-xl bg-accent px-5 py-3 font-semibold transition hover:scale-105 hover:bg-blue-500"
+            className="rounded-xl bg-[#635bff] px-5 py-3 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#4f46e5]"
           >
             Continue
           </button>
         </div>
       ) : (
         <div className="mt-6 space-y-3">
-          <label className="block text-sm text-gray-300">Where should we send your report?</label>
+          <label className="block text-sm text-[#44527f]">Where should we send your report?</label>
           <input
             type="text"
             placeholder="Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-xl border border-gray-700 bg-[#0f172a] px-4 py-3"
+            className="w-full rounded-xl border border-[#ccdaee] bg-[#f8fbff] px-4 py-3 text-[#1a1f36]"
           />
           <input
             type="text"
             placeholder="Company (optional)"
             value={company}
             onChange={(e) => setCompany(e.target.value)}
-            className="w-full rounded-xl border border-gray-700 bg-[#0f172a] px-4 py-3"
+            className="w-full rounded-xl border border-[#ccdaee] bg-[#f8fbff] px-4 py-3 text-[#1a1f36]"
           />
           <input
             required
@@ -104,13 +109,13 @@ export default function LeadForm() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl border border-gray-700 bg-[#0f172a] px-4 py-3"
+            className="w-full rounded-xl border border-[#ccdaee] bg-[#f8fbff] px-4 py-3 text-[#1a1f36]"
           />
           <textarea
             placeholder="Message (optional)"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="h-28 w-full rounded-xl border border-gray-700 bg-[#0f172a] px-4 py-3"
+            className="h-28 w-full rounded-xl border border-[#ccdaee] bg-[#f8fbff] px-4 py-3 text-[#1a1f36]"
           />
           <input
             type="text"
@@ -124,14 +129,14 @@ export default function LeadForm() {
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="rounded-xl border border-gray-600 px-5 py-3 transition hover:scale-105"
+              className="rounded-xl border border-[#c5d3ea] bg-white px-5 py-3 text-[#0a2540] transition hover:-translate-y-0.5"
             >
               Back
             </button>
             <button
               disabled={loading}
               type="submit"
-              className="rounded-xl bg-accent px-5 py-3 font-semibold transition hover:scale-105 hover:bg-blue-500 disabled:opacity-60"
+              className="rounded-xl bg-[#635bff] px-5 py-3 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#4f46e5] disabled:opacity-60"
             >
               {loading ? "Sending..." : "Send"}
             </button>
@@ -139,7 +144,7 @@ export default function LeadForm() {
         </div>
       )}
 
-      {status ? <p className="mt-4 text-sm text-gray-300">{status}</p> : null}
+      {status ? <p className="mt-4 text-sm text-[#4a5b89]">{status}</p> : null}
     </form>
   );
 }
