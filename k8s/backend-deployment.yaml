@@ -12,9 +12,11 @@ spec:
       labels:
         app: linuxspec-backend
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: linuxspec-backend
-          image: xil01/linuxspec-backend:43b394f
+          image: ghcr.io/xilpanda/linuxspec-backend:20eb9d4
           ports:
             - containerPort: 5000
           envFrom:

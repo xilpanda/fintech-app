@@ -8,13 +8,18 @@ on:
       - k8s/kustomization.yaml
 
 env:
+  REGISTRY: ghcr.io
+  REGISTRY_OWNER: xilpanda
   BACKEND_IMAGE_NAME: linuxspec-backend
   FRONTEND_IMAGE_NAME: linuxspec-frontend
 
 jobs:
   deploy:
-    if: ${{ !startsWith(github.event.head_commit.message, 'build: automatic update') }}
+    if: "${{ !startsWith(github.event.head_commit.message, 'build: automatic update') }}"
     runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout code
@@ -25,34 +30,34 @@ jobs:
           TAG=${GITHUB_SHA::7}
           echo "TAG=$TAG" >> $GITHUB_ENV
 
-      - name: Docker login
+      - name: GHCR login
         run: |
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u "${{ github.actor }}" --password-stdin
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG ./linuxspec-backend
+          docker build -t ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG ./linuxspec-backend
 
       - name: Push backend image
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG
+          docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG
 
       - name: Build frontend image
         run: |
           docker build \
             --build-arg NEXT_PUBLIC_API_BASE_URL=https://api.linuxspec.com \
             --build-arg NEXT_PUBLIC_CALENDLY_URL=https://calendly.com/linuxspec/intro-call \
-            -t ${{ secrets.DOCKER_USERNAME }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG \
+            -t ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG \
             ./linuxspec-frontend
 
       - name: Push frontend image
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG
+          docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG
 
       - name: Update deployment image
         run: |
-          sed -i "s|image: .*|image: ${{ secrets.DOCKER_USERNAME }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG|g" k8s/backend-deployment.yaml
-          sed -i "s|image: .*|image: ${{ secrets.DOCKER_USERNAME }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG|g" k8s/frontend-deployment.yaml
+          sed -i "/name: ${{ env.REGISTRY }}\\/${{ env.REGISTRY_OWNER }}\\/${{ env.BACKEND_IMAGE_NAME }}/{n;s/newTag:.*/newTag: $TAG/;}" k8s/kustomization.yaml
+          sed -i "/name: ${{ env.REGISTRY }}\\/${{ env.REGISTRY_OWNER }}\\/${{ env.FRONTEND_IMAGE_NAME }}/{n;s/newTag:.*/newTag: $TAG/;}" k8s/kustomization.yaml
 
       - name: Apply Kubernetes manifests
         run: |

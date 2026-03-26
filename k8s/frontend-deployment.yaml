@@ -12,9 +12,11 @@ spec:
       labels:
         app: linuxspec-frontend
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: linuxspec-frontend
-          image: xil01/linuxspec-frontend:43b394f
+          image: ghcr.io/xilpanda/linuxspec-frontend:20eb9d4
           ports:
             - containerPort: 3000
           readinessProbe:

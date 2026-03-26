@@ -10,7 +10,7 @@ resources:
 - ingress.yaml
 - postgres.yaml
 images:
-- name: xil01/linuxspec-frontend
-  newTag: d119ea5
-- name: xil01/linuxspec-backend
-  newTag: 43b394f
+- name: ghcr.io/xilpanda/linuxspec-frontend
+  newTag: 20eb9d4
+- name: ghcr.io/xilpanda/linuxspec-backend
+  newTag: 20eb9d4
