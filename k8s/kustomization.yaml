@@ -11,6 +11,6 @@ resources:
 - postgres.yaml
 images:
 - name: xil01/linuxspec-frontend
-  newTag: 5e3e299
+  newTag: f1b806f
 - name: xil01/linuxspec-backend
-  newTag: 15530c3
+  newTag: 43b394f
