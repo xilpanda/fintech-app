@@ -13,4 +13,4 @@ images:
 - name: xil01/linuxspec-frontend
   newTag: 2bad7f2
 - name: xil01/linuxspec-backend
-  newTag: 43b394f
+  newTag: 15530c3
