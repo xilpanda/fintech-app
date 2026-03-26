@@ -22,6 +22,13 @@ Goal:
 
 - Production website: https://linuxspec.com/
 
+## Current Deployment Model
+
+- Container images are built and published to GHCR (`ghcr.io/xilpanda/*`) through GitHub Actions on a self-hosted runner.
+- ArgoCD tracks the `k8s` directory as a Kustomize application and continuously reconciles cluster state to Git state.
+- Kubernetes runs frontend, backend, and MongoDB workloads behind ClusterIP services and NGINX Ingress routing.
+- TLS is managed by cert-manager with Let's Encrypt certificates for both web and API domains.
+
 ## Architecture (High-Level)
 
 ```text
