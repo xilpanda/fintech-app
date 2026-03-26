@@ -1,12 +1,16 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 resources:
-  - backend-deployment.yaml
-  - backend-service.yaml
-  - configmap-secret.yaml
-  - fintech-ingress.yaml
-  - frontend-deployment.yaml
-  - frontend-service.yaml
-  - ingress.yaml
-  - postgres.yaml
+- backend-deployment.yaml
+- backend-service.yaml
+- configmap-secret.yaml
+- fintech-ingress.yaml
+- frontend-deployment.yaml
+- frontend-service.yaml
+- ingress.yaml
+- postgres.yaml
+images:
+- name: xil01/linuxspec-frontend
+  newTag: manual-20260324a
+- name: xil01/linuxspec-backend
+  newTag: 43b394f
