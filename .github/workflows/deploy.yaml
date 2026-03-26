@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - k8s/kustomization.yaml
 
 env:
   BACKEND_IMAGE_NAME: linuxspec-backend
@@ -11,6 +13,7 @@ env:
 
 jobs:
   deploy:
+    if: ${{ !startsWith(github.event.head_commit.message, 'build: automatic update') }}
     runs-on: self-hosted
 
     steps:
