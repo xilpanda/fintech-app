@@ -33,7 +33,9 @@ jobs:
 
       - name: GHCR login
         run: |
-          echo "${{ github.token }}" | docker login ${{ env.REGISTRY }} -u "${{ github.actor }}" --password-stdin
+          TOKEN="${{ secrets.GHCR_TOKEN != '' && secrets.GHCR_TOKEN || github.token }}"
+          USERNAME="${{ secrets.GHCR_USERNAME != '' && secrets.GHCR_USERNAME || env.REGISTRY_OWNER }}"
+          echo "$TOKEN" | docker login ${{ env.REGISTRY }} -u "$USERNAME" --password-stdin
 
       - name: Build Docker image
         run: |
@@ -41,7 +43,7 @@ jobs:
 
       - name: Push backend image
         run: |
-          docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG
+          docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG || (sleep 5 && docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG)
 
       - name: Build frontend image
         run: |
@@ -53,7 +55,7 @@ jobs:
 
       - name: Push frontend image
         run: |
-          docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG
+          docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG || (sleep 5 && docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG)
 
       - name: Update deployment image
         run: |
