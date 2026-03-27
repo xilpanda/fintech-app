@@ -73,8 +73,9 @@ spec:
           parseMode: Markdown
           sendResolved: true
           message: |
-            *CRITICAL* - {{ .CommonLabels.alertname }}
+            *{{ .Status | toUpper }}* - {{ .CommonLabels.alertname }}
             Service: {{ .CommonLabels.service }}
+            Severity: {{ .CommonLabels.severity }}
             {{- if .CommonAnnotations.summary }}
             Summary: {{ .CommonAnnotations.summary }}
             {{- end }}
