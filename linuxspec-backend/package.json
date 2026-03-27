@@ -13,6 +13,7 @@
     "express": "^4.21.1",
     "express-rate-limit": "^7.4.1",
     "mongoose": "^8.7.2",
-    "nodemailer": "^6.9.16"
+    "nodemailer": "^6.9.16",
+    "prom-client": "^15.1.3"
   }
 }
