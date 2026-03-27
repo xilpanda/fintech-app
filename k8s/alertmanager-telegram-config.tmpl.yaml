@@ -7,7 +7,7 @@ metadata:
     release: monitoring
 spec:
   route:
-    receiver: telegram-default
+    receiver: telegram-drop
     matchers:
       - name: service
         value: linuxspec-backend
@@ -45,6 +45,7 @@ spec:
             - startTime: "22:00"
               endTime: "23:59"
   receivers:
+    - name: telegram-drop
     - name: telegram-default
       telegramConfigs:
         - botToken:
