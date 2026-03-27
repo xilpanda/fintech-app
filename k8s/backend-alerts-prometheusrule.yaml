@@ -11,9 +11,7 @@ spec:
       rules:
         - alert: LinuxspecBackendDown
           expr: |
-            absent(up{job="linuxspec-backend", namespace="default"})
-            or
-            up{job="linuxspec-backend", namespace="default"} == 0
+            sum(up{job="linuxspec-backend", namespace="default"}) < 1
           for: 1m
           labels:
             severity: critical
