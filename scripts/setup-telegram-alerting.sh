@@ -13,6 +13,7 @@ RENDERED_PATH="/tmp/alertmanager-telegram-config.yaml"
 BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-}"
 CHAT_ID="${TELEGRAM_CHAT_ID:-}"
 RUN_TEST=0
+TEST_DOWN_SECONDS="${TEST_DOWN_SECONDS:-190}"
 
 for arg in "$@"; do
   case "$arg" in
@@ -92,9 +93,9 @@ kubectl get alertmanagerconfig -n default telegram-notifications -o name
 echo "Telegram alerting setup completed."
 
 if [[ "$RUN_TEST" -eq 1 ]]; then
-  echo "Running test alert: scale backend to 0, wait, then restore to 1..."
+  echo "Running test alert: scale backend to 0 for ${TEST_DOWN_SECONDS}s, then restore to 1..."
   kubectl scale deployment linuxspec-backend --replicas=0
-  sleep 30
+  sleep "$TEST_DOWN_SECONDS"
   kubectl scale deployment linuxspec-backend --replicas=1
   echo "Test executed. Check Telegram for LinuxspecBackendDown firing/resolved alerts."
 fi

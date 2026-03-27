@@ -10,8 +10,11 @@ spec:
     - name: linuxspec-backend-alerts
       rules:
         - alert: LinuxspecBackendDown
-          expr: up{job="linuxspec-backend", namespace="default"} == 0
-          for: 2m
+          expr: |
+            absent(up{job="linuxspec-backend", namespace="default"})
+            or
+            up{job="linuxspec-backend", namespace="default"} == 0
+          for: 1m
           labels:
             severity: critical
             service: linuxspec-backend
