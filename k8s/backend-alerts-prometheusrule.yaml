@@ -11,14 +11,16 @@ spec:
       rules:
         - alert: LinuxspecBackendDown
           expr: |
-            sum(up{job="linuxspec-backend", namespace="default"}) < 1
+            absent(up{job="linuxspec-backend", namespace="default"})
+            or
+            up{job="linuxspec-backend", namespace="default"} == 0
           for: 1m
           labels:
             severity: critical
             service: linuxspec-backend
           annotations:
             summary: "Linuxspec backend is down"
-            description: "Prometheus cannot scrape linuxspec-backend for at least 2 minutes."
+            description: "Prometheus cannot scrape linuxspec-backend for at least 1 minute."
 
         - alert: LinuxspecBackendHighLatencyP95
           expr: |

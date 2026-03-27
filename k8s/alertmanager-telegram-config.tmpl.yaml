@@ -8,6 +8,10 @@ metadata:
 spec:
   route:
     receiver: telegram-default
+    matchers:
+      - name: service
+        value: linuxspec-backend
+        matchType: "="
     groupBy:
       - alertname
       - service
