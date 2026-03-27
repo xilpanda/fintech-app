@@ -19,6 +19,7 @@ spec:
           labels:
             severity: critical
             service: linuxspec-backend
+            namespace: default
           annotations:
             summary: "Linuxspec backend is down"
             description: "Prometheus cannot scrape linuxspec-backend for at least 1 minute."
