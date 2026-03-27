@@ -71,8 +71,8 @@ if [[ ! -f "$TEMPLATE_PATH" ]]; then
   exit 1
 fi
 
-echo "Applying telegram bot token secret in monitoring namespace..."
-kubectl -n monitoring create secret generic telegram-bot-token \
+echo "Applying telegram bot token secret in default namespace..."
+kubectl -n default create secret generic telegram-bot-token \
   --from-literal=token="$BOT_TOKEN" \
   --dry-run=client -o yaml | kubectl apply -f -
 
@@ -82,9 +82,12 @@ sed "s/__TELEGRAM_CHAT_ID__/$CHAT_ID/g" "$TEMPLATE_PATH" > "$RENDERED_PATH"
 echo "Applying AlertmanagerConfig..."
 kubectl apply -f "$RENDERED_PATH"
 
+echo "Cleaning old monitoring-scoped config (if present)..."
+kubectl delete alertmanagerconfig -n monitoring telegram-notifications --ignore-not-found=true
+
 echo "Waiting for AlertmanagerConfig to be registered..."
-kubectl get alertmanagerconfig -n monitoring telegram-notifications >/dev/null
-kubectl get alertmanagerconfig -n monitoring telegram-notifications -o name
+kubectl get alertmanagerconfig -n default telegram-notifications >/dev/null
+kubectl get alertmanagerconfig -n default telegram-notifications -o name
 
 echo "Telegram alerting setup completed."
 
