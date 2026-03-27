@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
 - backend-alerts-prometheusrule.yaml
 - backend-deployment.yaml
+- backend-hpa.yaml
 - backend-servicemonitor.yaml
 - backend-service.yaml
 - configmap-secret.yaml
