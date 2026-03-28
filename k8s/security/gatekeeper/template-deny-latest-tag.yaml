@@ -1,0 +1,32 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8sdenylatesttag
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sDenyLatestTag
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sdenylatesttag
+
+        is_latest(image) {
+          endswith(image, ":latest")
+        }
+
+        containers_for_review[container] {
+          input.review.kind.kind == "Pod"
+          container := input.review.object.spec.containers[_]
+        }
+
+        containers_for_review[container] {
+          container := input.review.object.spec.template.spec.containers[_]
+        }
+
+        violation[{"msg": msg}] {
+          container := containers_for_review[_]
+          is_latest(container.image)
+          msg := sprintf("image %q uses forbidden mutable tag :latest", [container.image])
+        }

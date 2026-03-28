@@ -120,3 +120,44 @@ This document summarizes all major work completed so far on the `linuxspec` migr
 - Replace manual image tags (`manual-20260324a`) with CI-generated SHA tags only.
 - Add Kubernetes manifests for runner health or external monitoring alerts.
 - Add smoke test job in CI after deploy (web + API health check).
+
+## Runbook: ArgoCD ApplicationSet controller restart loop
+
+### Incident
+
+- `argocd-applicationset-controller` had high and continuously increasing restarts.
+- Controller logs showed:
+  - `no matches for kind "ApplicationSet" in version "argoproj.io/v1alpha1"`
+- Root cause: missing CRD `applicationsets.argoproj.io`.
+
+### Fix applied
+
+1. Confirmed CRD was missing:
+   - `kubectl get crd applicationsets.argoproj.io`
+2. Installed CRD using server-side apply (avoids annotation size limit on large CRDs):
+   - `kubectl apply --server-side -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.3.4/manifests/crds/applicationset-crd.yaml`
+3. Restarted ApplicationSet controller:
+   - `kubectl rollout restart deployment/argocd-applicationset-controller -n argocd`
+4. Waited for successful rollout:
+   - `kubectl rollout status deployment/argocd-applicationset-controller -n argocd`
+
+### Verification commands
+
+```bash
+# CRD exists
+kubectl get crd applicationsets.argoproj.io
+
+# Controller pod healthy and restarts stable
+kubectl get pods -n argocd
+
+# No "no matches for kind ApplicationSet" errors
+kubectl logs -n argocd deploy/argocd-applicationset-controller --since=5m
+
+# GitOps app status remains healthy
+kubectl get applications -n argocd
+```
+
+Expected healthy state:
+- `applicationsets.argoproj.io` is present.
+- `argocd-applicationset-controller` is `Running` and no new crash loop pattern.
+- Argo app shows `Synced` and `Healthy` (e.g. `fintech-app`).

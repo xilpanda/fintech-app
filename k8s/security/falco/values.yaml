@@ -1,0 +1,33 @@
+falco:
+  jsonOutput: true
+  jsonIncludeOutputProperty: true
+  httpOutput:
+    enabled: false
+
+driver:
+  kind: modern_ebpf
+
+tty: true
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+falcoctl:
+  artifact:
+    install:
+      enabled: true
+    follow:
+      enabled: true
+
+customRules:
+  devsecops-local-rules.yaml: |-
+    - rule: Write Below Root
+      desc: Detect file write below root directories in containers
+      condition: container and evt.type in (open,openat,creat) and fd.name startswith /etc and evt.arg.flags contains O_WRONLY
+      output: "Write below /etc detected (user=%user.name command=%proc.cmdline file=%fd.name container=%container.id image=%container.image.repository)"
+      priority: WARNING

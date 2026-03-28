@@ -12,6 +12,7 @@ env:
   REGISTRY_OWNER: xilpanda
   BACKEND_IMAGE_NAME: linuxspec-backend
   FRONTEND_IMAGE_NAME: linuxspec-frontend
+  TRIVY_SEVERITY: HIGH,CRITICAL
 
 jobs:
   deploy:
@@ -26,20 +27,43 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Secret scan (Gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Trivy
+        run: |
+          TRIVY_VERSION="0.51.2"
+          curl -fsSL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" -o trivy.tar.gz
+          tar -xzf trivy.tar.gz trivy
+          sudo install -m 0755 trivy /usr/local/bin/trivy
+
+      - name: Filesystem vulnerability scan (Trivy)
+        run: |
+          trivy fs --ignore-unfixed --severity "${{ env.TRIVY_SEVERITY }}" --exit-code 1 .
+
       - name: Set image tag
         run: |
           TAG=${GITHUB_SHA::7}
           echo "TAG=$TAG" >> $GITHUB_ENV
 
       - name: GHCR login
+        env:
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
         run: |
           TOKEN="${{ secrets.GHCR_TOKEN != '' && secrets.GHCR_TOKEN || github.token }}"
-          USERNAME="${{ secrets.GHCR_USERNAME != '' && secrets.GHCR_USERNAME || env.REGISTRY_OWNER }}"
+          USERNAME="${GHCR_USERNAME:-${{ env.REGISTRY_OWNER }}}"
           echo "$TOKEN" | docker login ${{ env.REGISTRY }} -u "$USERNAME" --password-stdin
 
       - name: Build Docker image
         run: |
           docker build -t ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG ./linuxspec-backend
+
+      - name: Scan backend image (Trivy)
+        run: |
+          trivy image --ignore-unfixed --severity "${{ env.TRIVY_SEVERITY }}" --exit-code 1 \
+            ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG
 
       - name: Push backend image
         run: |
@@ -52,6 +76,11 @@ jobs:
             --build-arg NEXT_PUBLIC_CALENDLY_URL=https://calendly.com/linuxspec/intro-call \
             -t ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG \
             ./linuxspec-frontend
+
+      - name: Scan frontend image (Trivy)
+        run: |
+          trivy image --ignore-unfixed --severity "${{ env.TRIVY_SEVERITY }}" --exit-code 1 \
+            ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG
 
       - name: Push frontend image
         run: |

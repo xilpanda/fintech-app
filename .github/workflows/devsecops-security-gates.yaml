@@ -1,0 +1,31 @@
+name: DevSecOps Security Gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  security-gates:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Secret scan (Gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Trivy
+        run: |
+          TRIVY_VERSION="0.51.2"
+          curl -fsSL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" -o trivy.tar.gz
+          tar -xzf trivy.tar.gz trivy
+          sudo install -m 0755 trivy /usr/local/bin/trivy
+
+      - name: Filesystem vulnerability scan (Trivy)
+        run: |
+          trivy fs --ignore-unfixed --severity HIGH,CRITICAL --exit-code 1 .
