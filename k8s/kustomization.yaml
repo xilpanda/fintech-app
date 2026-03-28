@@ -15,6 +15,6 @@ resources:
 - postgres.yaml
 images:
 - name: ghcr.io/xilpanda/linuxspec-frontend
-  newTag: 20eb9d4
+  newTag: 15e43aa
 - name: ghcr.io/xilpanda/linuxspec-backend
   newTag: ec64376
