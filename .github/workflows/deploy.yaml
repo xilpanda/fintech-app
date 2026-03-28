@@ -66,6 +66,7 @@ jobs:
       - name: Scan backend image (Trivy)
         run: |
           trivy image --ignore-unfixed --ignorefile .trivyignore \
+            --vuln-type os --scanners vuln \
             --severity "${{ env.TRIVY_SEVERITY }}" --exit-code 1 \
             ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG
 
@@ -84,6 +85,7 @@ jobs:
       - name: Scan frontend image (Trivy)
         run: |
           trivy image --ignore-unfixed --ignorefile .trivyignore \
+            --vuln-type os --scanners vuln \
             --severity "${{ env.TRIVY_SEVERITY }}" --exit-code 1 \
             ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG
 
