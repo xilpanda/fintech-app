@@ -3,3 +3,9 @@ kind: Kustomization
 resources:
   - template-deny-latest-tag.yaml
   - constraint-deny-latest-tag.yaml
+  - template-require-resources.yaml
+  - constraint-require-resources.yaml
+  - template-deny-privileged.yaml
+  - constraint-deny-privileged.yaml
+  - template-require-runasnonroot.yaml
+  - constraint-require-runasnonroot.yaml

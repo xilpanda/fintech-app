@@ -161,3 +161,36 @@ Expected healthy state:
 - `applicationsets.argoproj.io` is present.
 - `argocd-applicationset-controller` is `Running` and no new crash loop pattern.
 - Argo app shows `Synced` and `Healthy` (e.g. `fintech-app`).
+
+## Runtime security phase completed (DevSecOps)
+
+### Completed
+
+- Installed OPA Gatekeeper runtime admission layer in cluster.
+- Applied Gatekeeper policy set:
+  - deny mutable image tag `:latest`,
+  - require `resources.requests/limits` (cpu + memory),
+  - deny privileged containers,
+  - require `runAsNonRoot: true` at container or pod level.
+- Installed Falco daemonset on all nodes with custom rule pack.
+- Enabled FalcoSidekick forwarding to Alertmanager endpoint for existing alerting channel integration.
+
+### Verification
+
+- Policy enforcement validated:
+  - test pod with `nginx:latest` was blocked by Gatekeeper webhook.
+- Runtime components healthy:
+  - Gatekeeper controller and audit pods `Running`.
+  - Falco daemonset pods `Running` on cluster nodes.
+
+### Operational command set
+
+```bash
+kubectl get pods -n gatekeeper-system
+kubectl get pods -n falco
+kubectl get constrainttemplates
+kubectl get k8sdenylatesttag.constraints.gatekeeper.sh
+kubectl get k8srequireresources.constraints.gatekeeper.sh
+kubectl get k8sdenyprivileged.constraints.gatekeeper.sh
+kubectl get k8srequirerunasnonroot.constraints.gatekeeper.sh
+```

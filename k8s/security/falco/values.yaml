@@ -24,6 +24,15 @@ falcoctl:
     follow:
       enabled: true
 
+falcosidekick:
+  enabled: true
+  webui:
+    enabled: false
+  config:
+    alertmanager:
+      hostport: "http://monitoring-kube-prometheus-alertmanager.monitoring.svc:9093"
+      minimumpriority: warning
+
 customRules:
   devsecops-local-rules.yaml: |-
     - rule: Write Below Root
