@@ -1,4 +1,4 @@
-# Kubernetes, CI/CD, GitOps
+# Kubernetes, CI/CD, GitOps, DevSecOps
 
 ## Overview
 
@@ -14,6 +14,7 @@ Technology baseline:
 - TLS management with cert-manager
 - Monitoring stack with Prometheus and Grafana
 - GitOps-ready operating model with ArgoCD
+- DevSecOps controls in CI and Kubernetes runtime
 
 Goal:
 - Run the application and validate how infrastructure, deployment, and operations behave under production-style conditions.
@@ -28,6 +29,7 @@ Goal:
 - ArgoCD tracks the `k8s` directory as a Kustomize application and continuously reconciles cluster state to Git state.
 - Kubernetes runs frontend, backend, and MongoDB workloads behind ClusterIP services and NGINX Ingress routing.
 - TLS is managed by cert-manager with Let's Encrypt certificates for both web and API domains.
+- Security gates run in CI (Gitleaks + Trivy), and runtime policy/threat detection runs in-cluster (Gatekeeper + Falco).
 
 ## Recent Platform Updates
 
@@ -37,6 +39,10 @@ Goal:
 - Added backend PrometheusRule alerts (availability, latency, error rate, CPU, memory, restart spikes).
 - Added Alertmanager Telegram notifications for backend alerts with severity-based routing.
 - Added backend HPA (`autoscaling/v2`) with CPU-based scaling behavior and stabilization policies.
+- Added dedicated DevSecOps workflows and integrated security gates into the main CI pipeline.
+- Added OPA Gatekeeper runtime policy enforcement (deny `:latest`, require resources, deny privileged, require `runAsNonRoot`).
+- Added Falco runtime threat detection with FalcoSidekick forwarding to Alertmanager.
+- Stabilized ArgoCD ApplicationSet controller by restoring missing `applicationsets.argoproj.io` CRD.
 
 ## Architecture (High-Level)
 
@@ -142,6 +148,13 @@ Ingress responsibilities:
 - No hardcoded credentials in manifests
 - Rotation can be done without rebuilding images
 
+### Runtime Security Enforcement
+
+- OPA Gatekeeper enforces admission policies before workloads are accepted by Kubernetes.
+- Active policy set blocks mutable image tags and insecure container security contexts.
+- Falco runs on cluster nodes for runtime threat detection.
+- FalcoSidekick forwards Falco events to Alertmanager for centralized alert routing.
+
 ### Transport Security
 
 - Certificates issued and renewed through cert-manager
@@ -195,12 +208,13 @@ Operational visibility typically includes:
 ### Delivery Flow
 
 ```text
-git push -> GitHub Actions -> self-hosted runner -> kubectl -> Kubernetes
+git push -> GitHub Actions (security gates + build/push) -> kubectl/ArgoCD -> Kubernetes
 ```
 
 ### Pipeline Characteristics
 
 - Automated image build and publish
+- Security gate checks (Gitleaks + Trivy filesystem/image scans)
 - Declarative manifest apply
 - Rollout status verification
 - Post-deploy smoke checks
@@ -247,6 +261,26 @@ Target state with ArgoCD:
 - Git as the single source of truth
 - automated sync to cluster state
 - drift detection and self-healing behavior
+
+## DevSecOps Runtime Layer
+
+Runtime security manifests and scripts are maintained in:
+
+- `k8s/security/gatekeeper/`
+- `k8s/security/falco/`
+- `scripts/install-devsecops-runtime.sh`
+
+Key verification commands:
+
+```bash
+kubectl get pods -n gatekeeper-system
+kubectl get pods -n falco
+kubectl get constrainttemplates
+kubectl get k8sdenylatesttag.constraints.gatekeeper.sh
+kubectl get k8srequireresources.constraints.gatekeeper.sh
+kubectl get k8sdenyprivileged.constraints.gatekeeper.sh
+kubectl get k8srequirerunasnonroot.constraints.gatekeeper.sh
+```
 
 ## Key Learnings
 
