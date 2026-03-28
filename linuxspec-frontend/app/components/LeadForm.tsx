@@ -60,10 +60,10 @@ export default function LeadForm() {
       className="mx-auto w-full max-w-2xl rounded-2xl border border-[#dbe4f3] bg-white p-6 shadow-[0_12px_30px_rgba(10,37,64,0.08)]"
     >
       <h3 className="text-2xl font-semibold text-[#0a2540]">
-        Get Your Free FinOps and Infrastructure Audit (24h)
+        Get Your Free FinOps and Security Audit (24h)
       </h3>
       <p className="mt-2 text-[#5b6c96]">
-        Step {step}/2 - takes 30 seconds. No commitment.
+        Step {step}/2 - takes 30 seconds. Actionable insights, no commitment.
       </p>
 
       {step === 1 ? (
@@ -83,7 +83,7 @@ export default function LeadForm() {
             onClick={() => setStep(2)}
             className="rounded-xl bg-[#635bff] px-5 py-3 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#4f46e5]"
           >
-            Continue
+            Continue to Contact Details
           </button>
         </div>
       ) : (
@@ -138,7 +138,7 @@ export default function LeadForm() {
               type="submit"
               className="rounded-xl bg-[#635bff] px-5 py-3 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#4f46e5] disabled:opacity-60"
             >
-              {loading ? "Sending..." : "Send"}
+              {loading ? "Sending..." : "Request Audit"}
             </button>
           </div>
         </div>

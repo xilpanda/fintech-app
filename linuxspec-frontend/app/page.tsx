@@ -1,6 +1,5 @@
 import LeadForm from "./components/LeadForm";
 import AnimatedMetrics from "./components/AnimatedMetrics";
-import Image from "next/image";
 
 const calendlyUrl =
   process.env.NEXT_PUBLIC_CALENDLY_URL || "https://calendly.com/linuxspec/intro-call";
@@ -8,44 +7,37 @@ const calendlyUrl =
 export default function Home() {
   const serviceCards = [
     {
-      title: "Cut Cloud Costs Without Breaking Performance",
-      benefit: "FinOps and Cost Optimization",
+      title: "FinOps Intelligence",
+      benefit: "Stop wasting money on cloud infrastructure.",
       points: [
-        "Identify infrastructure waste and overspending patterns",
-        "Optimize scaling and resource allocation safely",
-        "Gain real-time cost visibility for finance and engineering"
+        "Cost allocation per service and team",
+        "Waste detection for idle and overprovisioned resources",
+        "Rightsizing and autoscaling optimization strategies",
+        "Real-time spend dashboards, budgets, and forecasting"
       ],
       result: "Typical savings: 30-40%"
     },
     {
-      title: "Ship FinTech Systems Built for Throughput and Accuracy",
-      benefit: "FinTech Systems Engineering",
+      title: "Platform Engineering for High-Scale Systems",
+      benefit: "Build internal platforms for faster, safer delivery.",
       points: [
-        "Digital wallet and ledger-oriented architecture",
-        "Payment gateway and transaction pipeline integration",
-        "Low-latency and high-throughput API-first systems"
+        "Production Kubernetes clusters and release automation",
+        "CI/CD pipelines with GitOps-ready workflows",
+        "Infrastructure as Code foundations and self-service environments",
+        "Zero-downtime deployment and failover patterns"
       ],
-      result: "Validated for 10k+ req/sec patterns"
+      result: "Deploy faster with fewer incidents"
     },
     {
-      title: "Deploy Production Infrastructure with Zero-Downtime Releases",
-      benefit: "Infrastructure and Platform Delivery",
+      title: "FinTech Security and Compliance",
+      benefit: "Security is designed in from day one.",
       points: [
-        "Production Kubernetes and container platform setup",
-        "CI/CD automation with controlled release workflows",
-        "High availability, failover, and reliability engineering"
+        "OWASP Top 10 and API security controls",
+        "Secrets management with Kubernetes and vault-ready patterns",
+        "IAM and least privilege access design",
+        "Secure CI/CD and infrastructure hardening"
       ],
-      result: "99.99% uptime target architecture"
-    },
-    {
-      title: "Harden APIs and Platform Layers from Day One",
-      benefit: "Security and Compliance Readiness",
-      points: [
-        "API and infrastructure hardening practices",
-        "Secret lifecycle and access control patterns",
-        "Security-first delivery for fintech workloads"
-      ],
-      result: "Reduced attack surface and compliance readiness"
+      result: "Reduce attack surface before production"
     }
   ];
 
@@ -96,29 +88,131 @@ export default function Home() {
     }
   ];
 
+  const architectureLayers = [
+    {
+      id: "01",
+      title: "CI/CD and Security Gates",
+      text: "Build, scan, sign, and release with guardrails."
+    },
+    {
+      id: "02",
+      title: "HA Kubernetes Runtime",
+      text: "Resilient workloads and controlled rollout behavior."
+    },
+    {
+      id: "03",
+      title: "Observability Layer",
+      text: "Metrics, alerts, and incident workflows in one stack."
+    },
+    {
+      id: "04",
+      title: "FinOps Intelligence",
+      text: "Spend ownership, forecasting, and optimization loops."
+    },
+    {
+      id: "05",
+      title: "Secure Access Model",
+      text: "Least privilege IAM, secrets, and policy controls."
+    }
+  ];
+
+  const observabilityItems = [
+    "Prometheus metrics",
+    "Grafana dashboards",
+    "Alerting and incident response",
+    "SLA and SLO tracking",
+    "Logs roadmap (Loki or ELK)"
+  ];
+
+  const targetProfiles = [
+    "FinTech startups scaling fast",
+    "SaaS platforms with high cloud costs",
+    "Teams blocked by DevOps and delivery complexity",
+    "Companies requiring secure and compliant infrastructure"
+  ];
+
+  const engagementModels = [
+    {
+      title: "FinOps Audit",
+      text: "One-time cost, performance, and risk baseline."
+    },
+    {
+      title: "Infrastructure Setup",
+      text: "Project-based delivery for production platform buildout."
+    },
+    {
+      title: "Ongoing Operations",
+      text: "Monthly optimization, monitoring, and incident support."
+    }
+  ];
+
   return (
     <main className="min-h-screen bg-[#f6f9fc] text-[#1a1f36]">
+      <header className="sticky top-0 z-20 border-b border-[#dfe7f4]/80 bg-white/90 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 md:px-10 lg:px-16">
+          <a href="#" className="text-lg font-bold text-[#0a2540]">
+            linuxspec
+          </a>
+          <nav className="hidden items-center gap-6 text-sm font-semibold text-[#3d4f7c] md:flex">
+            <a href="#services" className="hover:text-[#635bff]">
+              Services
+            </a>
+            <a href="#architecture" className="hover:text-[#635bff]">
+              Architecture
+            </a>
+            <a href="#observability" className="hover:text-[#635bff]">
+              Observability
+            </a>
+            <a href="#engagement" className="hover:text-[#635bff]">
+              Engagement
+            </a>
+          </nav>
+          <a
+            href="#lead-form"
+            className="rounded-xl bg-[#635bff] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#4f46e5]"
+          >
+            Request Free Audit
+          </a>
+        </div>
+        <div className="mx-auto flex w-full max-w-7xl gap-2 overflow-x-auto px-6 pb-3 md:hidden">
+          {[
+            ["Services", "#services"],
+            ["Architecture", "#architecture"],
+            ["Observability", "#observability"],
+            ["Engagement", "#engagement"]
+          ].map(([label, href]) => (
+            <a
+              key={label}
+              href={href}
+              className="whitespace-nowrap rounded-full border border-[#d6e1f2] bg-white px-3 py-1.5 text-xs font-semibold text-[#455782]"
+            >
+              {label}
+            </a>
+          ))}
+        </div>
+      </header>
+
       <section className="relative overflow-hidden border-b border-[#dfe7f4]">
         <div className="pointer-events-none absolute -left-20 top-0 h-80 w-80 rounded-full bg-[#635bff]/20 blur-3xl" />
         <div className="pointer-events-none absolute right-0 top-20 h-72 w-72 rounded-full bg-[#0a2540]/10 blur-3xl" />
-        <div className="mx-auto grid w-full max-w-7xl gap-10 px-6 py-20 md:grid-cols-2 md:px-10 lg:px-16">
+        <div className="mx-auto grid w-full max-w-7xl gap-10 px-6 py-14 md:grid-cols-2 md:px-10 md:py-20 lg:px-16">
           <div>
             <p className="inline-flex rounded-full border border-[#d3ddf0] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#334e7f]">
-              FinTech Infrastructure and FinOps
+              FinOps. Platform Engineering. Security.
             </p>
             <h1 className="mt-5 text-4xl font-bold leading-tight text-[#0a2540] md:text-6xl">
-              Reduce Cloud Costs. Scale FinTech Infrastructure. Eliminate Downtime.
+              FinTech Infrastructure That Scales - Without Wasting Money.
             </h1>
-            <p className="mt-5 max-w-xl text-lg text-[#42507a]">
-              We design and operate high-performance fintech systems with production-grade DevOps and
-              measurable cost optimization.
+            <p className="mt-5 max-w-xl text-base text-[#42507a] md:text-lg">
+              Reduce cloud costs, improve system performance, and secure your platform with
+              production-grade FinOps, Platform Engineering, and Security practices.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a
                 href="#lead-form"
                 className="rounded-xl bg-[#635bff] px-6 py-3 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#4f46e5]"
               >
-                Request Free Assessment
+                Request Free Audit
               </a>
               <a
                 href={calendlyUrl}
@@ -130,38 +224,39 @@ export default function Home() {
             </div>
             <div className="mt-5 flex flex-wrap gap-2 text-xs font-medium text-[#4f5f8d]">
               {[
-                "Trusted architecture patterns",
-                "Production-ready Kubernetes",
-                "FinOps-driven optimization"
+                "Cut cloud spend by up to 40%",
+                "99.99% availability target",
+                "Scale to 10k+ requests/sec"
               ].map((item) => (
                 <span key={item} className="rounded-full border border-[#d4deef] bg-white px-3 py-1.5">
                   {item}
                 </span>
               ))}
             </div>
+            <p className="mt-4 text-sm font-medium text-[#5e6f9a]">
+              No commitment. Actionable results within 24h.
+            </p>
           </div>
-          <div className="relative rounded-3xl border border-[#d7e1f1] bg-[#0a2540] p-5 text-white shadow-xl">
-            <div className="pointer-events-none absolute -right-12 -top-10 h-44 w-44 rounded-full bg-[#635bff]/30 blur-3xl" />
-            <div className="pointer-events-none absolute -left-6 -bottom-6 h-40 w-40 rounded-full bg-[#00d4a7]/20 blur-3xl" />
-            <div className="overflow-hidden rounded-2xl border border-white/10">
-              <Image
-                src="/images/fintech-dashboard.png"
-                alt="Fintech platform dashboard interface"
-                width={1280}
-                height={720}
-                className="h-auto w-full"
-                priority
-              />
+          <div className="relative rounded-3xl border border-[#d7e1f1] bg-[#0a2540] p-5 text-white shadow-xl md:p-6">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#a7bcdf]">Problem to solution</p>
+            <h2 className="mt-3 text-xl font-bold md:text-2xl">Most teams struggle with the same issues</h2>
+            <ul className="mt-5 space-y-2 text-sm text-[#d9e4f6]">
+              <li>- Cloud costs increase without clear ownership or optimization.</li>
+              <li>- Deployments are slow, risky, and difficult to standardize.</li>
+              <li>- Security controls are added too late in the delivery cycle.</li>
+            </ul>
+            <div className="mt-6 rounded-2xl border border-white/15 bg-white/5 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#b5c8e7]">Solution</p>
+              <p className="mt-2 text-sm text-white">
+                We combine FinOps, Platform Engineering, and Security into one production operating
+                model focused on cost, velocity, and resilience.
+              </p>
             </div>
-            <div className="absolute -bottom-5 left-6 rounded-xl border border-white/15 bg-[#10264a]/95 px-4 py-3 shadow-lg backdrop-blur">
-              <p className="text-xs uppercase tracking-wide text-[#9bb0d0]">Live operations</p>
-              <p className="mt-1 text-sm font-semibold">Latency, spend, and health in one view</p>
-            </div>
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
               {[
-                ["40%", "Cloud Cost Reduction"],
-                ["99.99%", "SLA Availability"],
-                ["10k+ req/sec", "Transaction Capacity"]
+                ["Lower cost", "FinOps-led optimization"],
+                ["Faster delivery", "Platform standardization"],
+                ["Secure systems", "Built-in controls"]
               ].map(([value, label]) => (
                 <div key={label} className="rounded-xl border border-white/10 bg-white/5 p-3">
                   <p className="text-sm font-semibold text-white">{value}</p>
@@ -173,14 +268,14 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-7xl px-6 py-16 md:px-10 lg:px-16">
+      <section id="services" className="mx-auto w-full max-w-7xl px-6 py-16 md:px-10 lg:px-16">
         <div className="text-center">
           <p className="text-sm font-semibold uppercase tracking-wide text-[#4e5b89]">Services</p>
           <h2 className="mt-2 text-3xl font-bold text-[#0a2540] md:text-4xl">
-            Enterprise execution across FinOps, FinTech, Ops, and Security.
+            Core services for cost, delivery, and security outcomes.
           </h2>
         </div>
-        <div className="mt-10 grid gap-5 md:grid-cols-2">
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
           {serviceCards.map((service) => (
             <article
               key={service.title}
@@ -206,51 +301,64 @@ export default function Home() {
 
       <AnimatedMetrics />
 
-      <section className="mx-auto w-full max-w-7xl px-6 py-16 md:px-10 lg:px-16">
+      <section id="architecture" className="mx-auto w-full max-w-7xl px-6 py-16 md:px-10 lg:px-16">
         <div className="rounded-3xl border border-[#dbe4f3] bg-[#0f1f3d] p-8 text-white shadow-[0_16px_40px_rgba(10,37,64,0.28)]">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-sm font-semibold uppercase tracking-wide text-[#9bb0d0]">
-                Platform visibility
+                Reference architecture
               </p>
-              <h2 className="mt-2 text-3xl font-bold">Operations dashboard preview</h2>
+              <h2 className="mt-2 text-3xl font-bold">Production-ready architecture for fintech workloads</h2>
               <p className="mt-3 max-w-2xl text-sm text-[#c0cee6]">
-                Real-time visibility into your infrastructure. Monitor latency, throughput, cost,
-                and system health in one place.
+                Designed for secure delivery, high availability operations, and continuous cost
+                control from commit to production.
               </p>
             </div>
-            <p className="text-sm text-[#b7c7e3]">
-              Prometheus, Grafana, alerts, latency, throughput, and spend tracking
-            </p>
           </div>
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#132a4f]">
-              <Image
-                src="/images/prometheus-metrics.png"
-                alt="Prometheus metrics dashboard"
-                width={1024}
-                height={597}
-                className="h-auto w-full"
-              />
-            </div>
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#132a4f]">
-              <Image
-                src="/images/grafana-home.png"
-                alt="Grafana monitoring dashboard home"
-                width={1024}
-                height={577}
-                className="h-auto w-full"
-              />
-            </div>
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#132a4f] md:col-span-2">
-              <Image
-                src="/images/k8s-observability.png"
-                alt="Kubernetes observability dashboard"
-                width={1365}
-                height={768}
-                className="h-auto w-full"
-              />
-            </div>
+          <div className="mt-8 grid gap-4 md:grid-cols-5">
+            {architectureLayers.map((item, index) => (
+              <div key={item.id} className="relative rounded-2xl border border-white/10 bg-[#132a4f] p-4">
+                <p className="text-xs uppercase tracking-wide text-[#9bb0d0]">{item.id}</p>
+                <p className="mt-2 text-sm font-semibold">{item.title}</p>
+                <p className="mt-2 text-xs text-[#c0cee6]">{item.text}</p>
+                {index < architectureLayers.length - 1 ? (
+                  <span className="mt-3 hidden text-xs text-[#8fa7cd] md:inline-block">-&gt;</span>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="observability" className="mx-auto w-full max-w-7xl px-6 py-16 md:px-10 lg:px-16">
+        <div className="rounded-3xl border border-[#dbe4f3] bg-white p-8 shadow-[0_14px_32px_rgba(10,37,64,0.08)]">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[#4e5b89]">Observability</p>
+          <h2 className="mt-2 text-3xl font-bold text-[#0a2540] md:text-4xl">
+            You cannot optimize what you cannot see.
+          </h2>
+          <p className="mt-3 max-w-3xl text-sm text-[#5a6c97]">
+            Real-time infrastructure visibility across performance, reliability, and incident response.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-5">
+            {observabilityItems.map((item) => (
+              <div key={item} className="rounded-xl border border-[#d6e2f3] bg-[#f8fbff] p-4 text-sm text-[#475786]">
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-7xl px-6 py-4 md:px-10 lg:px-16">
+        <div className="rounded-3xl border border-[#dbe4f3] bg-white p-8 shadow-[0_14px_32px_rgba(10,37,64,0.08)]">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[#4e5b89]">Who we work with</p>
+          <h2 className="mt-2 text-3xl font-bold text-[#0a2540] md:text-4xl">Built for teams under delivery pressure</h2>
+          <div className="mt-6 grid gap-3 text-sm text-[#4b5984] md:grid-cols-2">
+            {targetProfiles.map((item) => (
+              <p key={item} className="rounded-xl border border-[#d7e2f2] bg-[#f8fbff] p-3">
+                {item}
+              </p>
+            ))}
           </div>
         </div>
       </section>
@@ -311,6 +419,24 @@ export default function Home() {
         </div>
       </section>
 
+      <section id="engagement" className="mx-auto w-full max-w-7xl px-6 py-4 md:px-10 lg:px-16">
+        <div className="rounded-3xl border border-[#dbe4f3] bg-white p-8 shadow-[0_14px_32px_rgba(10,37,64,0.08)]">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[#4e5b89]">Engagement Models</p>
+          <h2 className="mt-2 text-3xl font-bold text-[#0a2540] md:text-4xl">
+            Flexible delivery aligned to your stage and scope.
+          </h2>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {engagementModels.map((item) => (
+              <article key={item.title} className="rounded-2xl border border-[#dbe4f3] bg-[#f8fbff] p-5">
+                <h3 className="text-lg font-semibold text-[#0a2540]">{item.title}</h3>
+                <p className="mt-2 text-sm text-[#53638f]">{item.text}</p>
+              </article>
+            ))}
+          </div>
+          <p className="mt-4 text-sm text-[#5f6f99]">Custom pricing based on scope and system complexity.</p>
+        </div>
+      </section>
+
       <section className="mx-auto w-full max-w-7xl px-6 py-8 md:px-10 lg:px-16">
         <div className="rounded-3xl bg-gradient-to-r from-[#0a2540] to-[#635bff] p-10 text-center text-white shadow-[0_20px_40px_rgba(10,37,64,0.25)]">
           <h2 className="text-3xl font-bold md:text-4xl">
@@ -324,7 +450,7 @@ export default function Home() {
               href="#lead-form"
               className="rounded-xl bg-white px-6 py-3 font-semibold text-[#0a2540] transition hover:-translate-y-0.5"
             >
-              Request Free Assessment
+              Request Free Audit
             </a>
             <a
               href={calendlyUrl}
@@ -341,20 +467,20 @@ export default function Home() {
         <div className="rounded-3xl border border-[#dbe4f3] bg-white p-8 shadow-[0_14px_36px_rgba(10,37,64,0.10)]">
           <p className="text-sm font-semibold uppercase tracking-wide text-[#4e5b89]">Free Audit</p>
           <h2 className="mt-2 text-3xl font-bold text-[#0a2540] md:text-4xl">
-            Get your free FinOps and Infrastructure Audit (24h)
+            Get your free FinOps and Security Audit (24h)
           </h2>
           <div className="mt-6 grid gap-3 text-sm text-[#4b5984] md:grid-cols-3">
             <p className="rounded-xl border border-[#d7e2f2] bg-[#f8fbff] p-3">
-              Identify wasted cloud spend
+              Cloud cost breakdown
             </p>
             <p className="rounded-xl border border-[#d7e2f2] bg-[#f8fbff] p-3">
-              Detect performance bottlenecks
+              Security gap analysis
             </p>
             <p className="rounded-xl border border-[#d7e2f2] bg-[#f8fbff] p-3">
-              Get an actionable optimization plan
+              Performance bottleneck insights
             </p>
           </div>
-          <p className="mt-4 text-sm text-[#5f6f99]">No commitment. Real results.</p>
+          <p className="mt-4 text-sm text-[#5f6f99]">No commitment. Actionable results.</p>
         </div>
       </section>
 
@@ -364,7 +490,7 @@ export default function Home() {
 
       <footer className="border-t border-[#dbe4f3] bg-white px-6 py-10 text-center text-[#5a6b95]">
         <p className="font-semibold text-[#0a2540]">linuxspec</p>
-        <p className="mt-2 text-sm">FinTech Infrastructure and FinOps Engineering</p>
+        <p className="mt-2 text-sm">FinOps • Platform Engineering • Security for FinTech systems</p>
         <p className="mt-2 text-sm">linuxsecops@proton.me</p>
         <p className="mt-2 text-sm">© {new Date().getFullYear()} linuxspec</p>
       </footer>

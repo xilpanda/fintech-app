@@ -2,15 +2,16 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "linuxspec | FinOps + Fintech Engineering",
+  title: "linuxspec | FinOps + Platform Engineering + Security",
   description:
-    "Reduce cloud costs, optimize Linux infrastructure, and build secure fintech systems.",
+    "FinOps, Platform Engineering, and Security services for teams that need lower cloud costs, faster delivery, and secure fintech infrastructure.",
   keywords: [
     "finops",
     "cloud cost optimization",
-    "fintech engineering",
-    "linux infrastructure",
-    "devops"
+    "platform engineering",
+    "kubernetes",
+    "security hardening",
+    "fintech infrastructure"
   ]
 };
 

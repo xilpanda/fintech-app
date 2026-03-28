@@ -3,8 +3,12 @@
 @tailwind utilities;
 
 body {
-  background: #0b0f14;
-  color: #f3f4f6;
+  background: #f6f9fc;
+  color: #1a1f36;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 .card {
