@@ -29,6 +29,15 @@ Goal:
 - Kubernetes runs frontend, backend, and MongoDB workloads behind ClusterIP services and NGINX Ingress routing.
 - TLS is managed by cert-manager with Let's Encrypt certificates for both web and API domains.
 
+## Recent Platform Updates
+
+- Added public Grafana access on `https://grafana.linuxspec.com` through Kubernetes Ingress.
+- Migrated Grafana certificate flow to cert-manager `DNS-01` validation (Cloudflare + `letsencrypt-dns`) to support homelab/private-IP ingress.
+- Added backend Prometheus instrumentation (`/metrics`) and ServiceMonitor-based scraping.
+- Added backend PrometheusRule alerts (availability, latency, error rate, CPU, memory, restart spikes).
+- Added Alertmanager Telegram notifications for backend alerts with severity-based routing.
+- Added backend HPA (`autoscaling/v2`) with CPU-based scaling behavior and stabilization policies.
+
 ## Architecture (High-Level)
 
 ```text
@@ -172,11 +181,14 @@ This design protects data through pod restarts and rolling updates.
 
 - Prometheus for metrics collection
 - Grafana for dashboards and visualization
+- Alertmanager for routing alerts to Telegram
+- Public Grafana endpoint secured with Let's Encrypt TLS via DNS-01 challenge
 
 Operational visibility typically includes:
 - CPU and memory utilization
 - pod health and restarts
 - deployment and cluster status
+- HTTP request latency and error-rate trends for backend APIs
 
 ## CI/CD Pipeline
 

@@ -10,6 +10,7 @@ resources:
 - fintech-ingress.yaml
 - frontend-deployment.yaml
 - frontend-service.yaml
+- grafana-ingress.yaml
 - ingress.yaml
 - postgres.yaml
 images:
