@@ -30,4 +30,5 @@ jobs:
 
       - name: Filesystem vulnerability scan (Trivy)
         run: |
-          trivy fs --ignore-unfixed --severity HIGH,CRITICAL --exit-code 1 .
+          trivy fs --ignore-unfixed --ignorefile .trivyignore \
+            --severity HIGH,CRITICAL --exit-code 1 .

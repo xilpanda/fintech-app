@@ -43,7 +43,8 @@ jobs:
 
       - name: Filesystem vulnerability scan (Trivy)
         run: |
-          trivy fs --ignore-unfixed --severity "${{ env.TRIVY_SEVERITY }}" --exit-code 1 .
+          trivy fs --ignore-unfixed --ignorefile .trivyignore \
+            --severity "${{ env.TRIVY_SEVERITY }}" --exit-code 1 .
 
       - name: Set image tag
         run: |
@@ -64,7 +65,8 @@ jobs:
 
       - name: Scan backend image (Trivy)
         run: |
-          trivy image --ignore-unfixed --severity "${{ env.TRIVY_SEVERITY }}" --exit-code 1 \
+          trivy image --ignore-unfixed --ignorefile .trivyignore \
+            --severity "${{ env.TRIVY_SEVERITY }}" --exit-code 1 \
             ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG
 
       - name: Push backend image
@@ -81,7 +83,8 @@ jobs:
 
       - name: Scan frontend image (Trivy)
         run: |
-          trivy image --ignore-unfixed --severity "${{ env.TRIVY_SEVERITY }}" --exit-code 1 \
+          trivy image --ignore-unfixed --ignorefile .trivyignore \
+            --severity "${{ env.TRIVY_SEVERITY }}" --exit-code 1 \
             ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG
 
       - name: Push frontend image

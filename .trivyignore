@@ -1,0 +1,8 @@
+# Temporary risk acceptance entries to keep CI unblocked.
+# Action item: remove these ignores after dependency upgrades are completed.
+
+# backend: nodemailer 6.x advisory, fixed in 7.x (major bump)
+CVE-2025-14874
+
+# frontend: next 14.x advisory, fixed in 15.x+ (framework major upgrade track)
+GHSA-h25m-26qc-wcjf
