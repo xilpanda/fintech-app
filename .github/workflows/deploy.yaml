@@ -231,16 +231,25 @@ jobs:
           kubectl apply -k k8s
 
       - name: Enforce Sigstore include label only in linuxspec-prod
+        if: steps.cosign_config.outputs.enabled == 'true'
         run: |
           kubectl label namespace linuxspec-prod policy.sigstore.dev/include=true --overwrite
           kubectl label namespace default policy.sigstore.dev/include- || true
 
+      - name: Disable Sigstore include label when signing is disabled
+        if: steps.cosign_config.outputs.enabled != 'true'
+        run: |
+          kubectl label namespace linuxspec-prod policy.sigstore.dev/include- || true
+          kubectl label namespace default policy.sigstore.dev/include- || true
+
       - name: Apply Sigstore image policy
+        if: steps.cosign_config.outputs.enabled == 'true'
         run: |
           kubectl apply -k k8s/security/image-signing
           kubectl get clusterimagepolicy linuxspec-signed-images
 
       - name: Sigstore admission negative test (must deny unsigned image)
+        if: steps.cosign_config.outputs.enabled == 'true'
         run: |
           cat <<'EOF' | kubectl apply -f -
           apiVersion: policy.sigstore.dev/v1beta1
@@ -280,6 +289,7 @@ jobs:
           fi
 
       - name: Sigstore admission positive test (must allow signed image)
+        if: steps.cosign_config.outputs.enabled == 'true'
         run: |
           kubectl run ci-sigstore-positive \
             -n linuxspec-prod \
