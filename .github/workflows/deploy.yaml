@@ -45,10 +45,20 @@ jobs:
       - name: Install Syft and Cosign
         run: |
           mkdir -p "$RUNNER_TEMP/bin"
-          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh \
-            | sh -s -- -b "$RUNNER_TEMP/bin"
-          curl -sSfL https://raw.githubusercontent.com/sigstore/cosign/main/install.sh \
-            | sh -s -- -b "$RUNNER_TEMP/bin"
+
+          SYFT_VERSION="$(python -c 'import json,urllib.request; print(json.load(urllib.request.urlopen("https://api.github.com/repos/anchore/syft/releases/latest"))["tag_name"])')"
+          SYFT_VERSION="${SYFT_VERSION#v}"
+          curl -sSfL "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/syft_${SYFT_VERSION}_linux_amd64.tar.gz" \
+            -o "$RUNNER_TEMP/bin/syft.tar.gz"
+          tar -xzf "$RUNNER_TEMP/bin/syft.tar.gz" -C "$RUNNER_TEMP/bin" syft
+          chmod +x "$RUNNER_TEMP/bin/syft"
+          rm -f "$RUNNER_TEMP/bin/syft.tar.gz"
+
+          COSIGN_VERSION="$(python -c 'import json,urllib.request; print(json.load(urllib.request.urlopen("https://api.github.com/repos/sigstore/cosign/releases/latest"))["tag_name"])')"
+          curl -sSfL "https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-amd64" \
+            -o "$RUNNER_TEMP/bin/cosign"
+          chmod +x "$RUNNER_TEMP/bin/cosign"
+
           export PATH="$RUNNER_TEMP/bin:$PATH"
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
           syft version
