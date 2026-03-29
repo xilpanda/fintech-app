@@ -7,6 +7,10 @@ on:
     paths-ignore:
       - k8s/kustomization.yaml
 
+concurrency:
+  group: full-cicd-main
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   REGISTRY_OWNER: xilpanda
@@ -300,25 +304,29 @@ jobs:
 
       - name: Wait for rollout
         run: |
-          kubectl rollout status deployment/linuxspec-backend -n linuxspec-prod
-          kubectl rollout status deployment/linuxspec-frontend -n linuxspec-prod
+          set +e
+          kubectl rollout status deployment/linuxspec-backend -n linuxspec-prod --timeout=15m
+          BACKEND_STATUS=$?
+          kubectl rollout status deployment/linuxspec-frontend -n linuxspec-prod --timeout=15m
+          FRONTEND_STATUS=$?
+          set -e
 
-      - name: Collect rollout diagnostics on failure
-        if: failure()
-        run: |
-          echo "=== Deployment status ==="
-          kubectl -n linuxspec-prod get deploy linuxspec-backend linuxspec-frontend -o wide || true
-          echo "=== ReplicaSets ==="
-          kubectl -n linuxspec-prod get rs -l app=linuxspec-backend -o wide || true
-          echo "=== Pods ==="
-          kubectl -n linuxspec-prod get pods -l app=linuxspec-backend -o wide || true
-          echo "=== Backend deployment describe ==="
-          kubectl -n linuxspec-prod describe deployment linuxspec-backend || true
-          echo "=== Recent backend pod logs ==="
-          POD_NAME="$(kubectl -n linuxspec-prod get pods -l app=linuxspec-backend -o jsonpath='{.items[-1:].metadata.name}' 2>/dev/null || true)"
-          if [ -n "$POD_NAME" ]; then
-            kubectl -n linuxspec-prod logs "$POD_NAME" --tail=200 || true
-            kubectl -n linuxspec-prod logs "$POD_NAME" --previous --tail=200 || true
+          if [ "$BACKEND_STATUS" -ne 0 ] || [ "$FRONTEND_STATUS" -ne 0 ]; then
+            echo "=== Deployment status ==="
+            kubectl -n linuxspec-prod get deploy linuxspec-backend linuxspec-frontend -o wide || true
+            echo "=== Backend ReplicaSets ==="
+            kubectl -n linuxspec-prod get rs -l app=linuxspec-backend -o wide || true
+            echo "=== Backend Pods ==="
+            kubectl -n linuxspec-prod get pods -l app=linuxspec-backend -o wide || true
+            echo "=== Backend deployment describe ==="
+            kubectl -n linuxspec-prod describe deployment linuxspec-backend || true
+            echo "=== Recent backend pod logs ==="
+            POD_NAME="$(kubectl -n linuxspec-prod get pods -l app=linuxspec-backend -o jsonpath='{.items[-1:].metadata.name}' 2>/dev/null || true)"
+            if [ -n "$POD_NAME" ]; then
+              kubectl -n linuxspec-prod logs "$POD_NAME" --tail=200 || true
+              kubectl -n linuxspec-prod logs "$POD_NAME" --previous --tail=200 || true
+            fi
+            exit 1
           fi
 
       - name: Smoke test services
