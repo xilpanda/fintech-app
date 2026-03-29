@@ -11,7 +11,7 @@ spec:
       app: linuxspec-backend
   namespaceSelector:
     matchNames:
-      - default
+      - linuxspec-prod
   endpoints:
     - port: http
       path: /metrics

@@ -238,6 +238,21 @@ export default function Home() {
             </p>
           </div>
           <div className="relative rounded-3xl border border-[#d7e1f1] bg-[#0a2540] p-5 text-white shadow-xl md:p-6">
+            <div className="mb-5 flex flex-wrap gap-2 text-xs font-semibold text-[#c5d5ef]">
+              {[
+                ["\u2601", "Cloud cost control"],
+                ["\u25b2", "Performance tracking"],
+                ["\u26e8", "Secure delivery"]
+              ].map(([icon, label]) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1"
+                >
+                  <span aria-hidden>{icon}</span>
+                  <span>{label}</span>
+                </span>
+              ))}
+            </div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[#a7bcdf]">Problem to solution</p>
             <h2 className="mt-3 text-xl font-bold md:text-2xl">Most teams struggle with the same issues</h2>
             <ul className="mt-5 space-y-2 text-sm text-[#d9e4f6]">
@@ -263,6 +278,25 @@ export default function Home() {
                   <p className="text-xs text-[#9bb0d0]">{label}</p>
                 </div>
               ))}
+            </div>
+            <div className="mt-5 rounded-2xl border border-white/15 bg-white/5 p-4">
+              <div className="flex items-center justify-between text-xs text-[#b5c8e7]">
+                <p className="font-semibold uppercase tracking-wide">Performance trend</p>
+                <p>Last 30 days</p>
+              </div>
+              <div className="mt-3 flex items-end gap-1.5">
+                {[42, 48, 51, 57, 61, 66, 72].map((height, index) => (
+                  <div
+                    key={`${height}-${index}`}
+                    className="w-full rounded-t bg-gradient-to-t from-[#635bff] to-[#8f89ff]"
+                    style={{ height: `${height}px` }}
+                  />
+                ))}
+              </div>
+              <div className="mt-2 flex items-center justify-between text-[11px] text-[#9bb0d0]">
+                <span>Stability +12%</span>
+                <span>Latency -18%</span>
+              </div>
             </div>
           </div>
         </div>

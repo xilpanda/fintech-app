@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: linuxspec-frontend
+  namespace: linuxspec-prod
 spec:
   replicas: 1
   selector:
@@ -12,11 +13,30 @@ spec:
       labels:
         app: linuxspec-frontend
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       imagePullSecrets:
         - name: ghcr-secret
+      volumes:
+        - name: tmp
+          emptyDir: {}
       containers:
         - name: linuxspec-frontend
           image: ghcr.io/xilpanda/linuxspec-frontend:20eb9d4
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           ports:
             - containerPort: 3000
           readinessProbe:

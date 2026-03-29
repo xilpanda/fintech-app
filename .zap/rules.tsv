@@ -1,0 +1,6 @@
+10016	IGNORE	X-XSS-Protection header is deprecated in modern browsers.
+10027	IGNORE	Informational comments in response body are accepted for baseline checks.
+10035	FAIL	HSTS header must be present on public HTTPS endpoints.
+10038	WARN	Content-Security-Policy should be progressively hardened.
+10020	WARN	X-Frame-Options should be explicitly defined where applicable.
+10021	WARN	X-Content-Type-Options should be set to nosniff.

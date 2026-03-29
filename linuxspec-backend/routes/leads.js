@@ -1,12 +1,17 @@
 import express from "express";
 import mongoose from "mongoose";
 import Lead from "../models/Lead.js";
-import { sendLeadEmails } from "../services/email.js";
+import { sendLeadEmails, sendSmokeEmail } from "../services/email.js";
 
 const router = express.Router();
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const statuses = ["new", "contacted", "won", "lost"];
+const MAX_SEARCH_LENGTH = 80;
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 function requireAdmin(req, res, next) {
   const expected = process.env.ADMIN_API_KEY;
@@ -40,12 +45,17 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Invalid email" });
     }
 
+    const normalizedMonthlyCost = Number(monthlyCost || 0);
+    if (!Number.isFinite(normalizedMonthlyCost) || normalizedMonthlyCost < 0) {
+      return res.status(400).json({ error: "Invalid monthly cost" });
+    }
+
     const lead = await Lead.create({
       name: String(name).trim(),
       company: String(company).trim(),
       email: String(email).trim().toLowerCase(),
       message: String(message).trim(),
-      monthlyCost: Number(monthlyCost || 0)
+      monthlyCost: normalizedMonthlyCost
     });
 
     sendLeadEmails(lead).catch((error) => {
@@ -62,7 +72,7 @@ router.post("/", async (req, res) => {
 router.get("/", requireAdmin, async (req, res) => {
   const limit = Math.min(Math.max(Number(req.query.limit || 50), 1), 200);
   const status = String(req.query.status || "").trim();
-  const q = String(req.query.q || "").trim();
+  const q = String(req.query.q || "").trim().slice(0, MAX_SEARCH_LENGTH);
 
   const filter = {};
   if (status) {
@@ -72,10 +82,11 @@ router.get("/", requireAdmin, async (req, res) => {
     filter.status = status;
   }
   if (q) {
+    const escapedSearch = escapeRegex(q);
     filter.$or = [
-      { email: { $regex: q, $options: "i" } },
-      { name: { $regex: q, $options: "i" } },
-      { message: { $regex: q, $options: "i" } }
+      { email: { $regex: escapedSearch, $options: "i" } },
+      { name: { $regex: escapedSearch, $options: "i" } },
+      { message: { $regex: escapedSearch, $options: "i" } }
     ];
   }
 
@@ -115,6 +126,23 @@ router.patch("/:id/status", requireAdmin, async (req, res) => {
     return res.status(404).json({ error: "Lead not found" });
   }
   return res.json({ success: true, lead });
+});
+
+router.post("/smoke/email", requireAdmin, async (req, res) => {
+  const smokeEnabled = process.env.ENABLE_EMAIL_SMOKE_TEST === "true";
+  const environment = process.env.NODE_ENV || "development";
+
+  if (!smokeEnabled || environment === "production") {
+    return res.status(403).json({ error: "Email smoke test disabled" });
+  }
+
+  try {
+    await sendSmokeEmail({ requestedBy: req.ip });
+    return res.json({ success: true, message: "Smoke email sent" });
+  } catch (error) {
+    console.error("Email smoke test failed:", error.message);
+    return res.status(500).json({ error: "Email smoke test failed" });
+  }
 });
 
 export default router;

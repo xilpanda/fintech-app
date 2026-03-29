@@ -43,6 +43,19 @@ Goal:
 - Added OPA Gatekeeper runtime policy enforcement (deny `:latest`, require resources, deny privileged, require `runAsNonRoot`).
 - Added Falco runtime threat detection with FalcoSidekick forwarding to Alertmanager.
 - Stabilized ArgoCD ApplicationSet controller by restoring missing `applicationsets.argoproj.io` CRD.
+- Added Linkerd mTLS automation scripts for D1 rollout:
+  - `scripts/install-linkerd-mtls.sh`
+  - `scripts/onboard-linkerd-linuxspec-prod.sh`
+- Added Cilium/Hubble D2 pilot automation scripts:
+  - `scripts/d2-cilium-pilot-baseline.sh`
+  - `scripts/d2-cilium-pilot-install.sh`
+  - `scripts/d2-cilium-pilot-verify.sh`
+- Added D3 Falco advanced tuning assets:
+  - `scripts/d3-falco-apply-tuning.sh`
+  - `scripts/d3-falco-validate-rules.sh`
+  - extended custom Falco rules in `k8s/security/falco/values.yaml`
+- Added P1 key-rotation cutover validation automation:
+  - `scripts/p1-key-rotation-cutover-validate.sh`
 
 ## Architecture (High-Level)
 

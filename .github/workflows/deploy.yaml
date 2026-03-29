@@ -22,6 +22,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -40,6 +41,29 @@ jobs:
           export PATH="$RUNNER_TEMP/bin:$PATH"
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
           trivy --version
+
+      - name: Install Syft and Cosign
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh \
+            | sh -s -- -b "$RUNNER_TEMP/bin"
+          curl -sSfL https://raw.githubusercontent.com/sigstore/cosign/main/install.sh \
+            | sh -s -- -b "$RUNNER_TEMP/bin"
+          export PATH="$RUNNER_TEMP/bin:$PATH"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+          syft version
+          cosign version
+
+      - name: Check Cosign signing configuration
+        id: cosign_config
+        run: |
+          if [ -n "${{ secrets.COSIGN_PRIVATE_KEY }}" ] && [ -n "${{ secrets.COSIGN_PUBLIC_KEY }}" ] && [ -n "${{ secrets.COSIGN_PASSWORD }}" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Cosign secrets are not fully configured."
+            exit 1
+          fi
 
       - name: Filesystem vulnerability scan (Trivy)
         run: |
@@ -63,6 +87,12 @@ jobs:
         run: |
           docker build -t ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG ./linuxspec-backend
 
+      - name: Generate backend SBOM (Syft)
+        run: |
+          mkdir -p sbom
+          syft ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG \
+            -o spdx-json=sbom/backend-${TAG}.spdx.json
+
       - name: Scan backend image (Trivy)
         run: |
           trivy image --ignore-unfixed --ignorefile .trivyignore \
@@ -74,6 +104,18 @@ jobs:
         run: |
           docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG || (sleep 5 && docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG)
 
+      - name: Sign and verify backend image (Cosign)
+        if: steps.cosign_config.outputs.enabled == 'true'
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG"
+          cosign sign --yes --key env://COSIGN_PRIVATE_KEY "$IMAGE"
+          cosign verify --key env://COSIGN_PUBLIC_KEY "$IMAGE"
+          cosign attest --yes --key env://COSIGN_PRIVATE_KEY --predicate "sbom/backend-${TAG}.spdx.json" --type spdx "$IMAGE"
+
       - name: Build frontend image
         run: |
           docker build \
@@ -81,6 +123,12 @@ jobs:
             --build-arg NEXT_PUBLIC_CALENDLY_URL=https://calendly.com/linuxspec/intro-call \
             -t ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG \
             ./linuxspec-frontend
+
+      - name: Generate frontend SBOM (Syft)
+        run: |
+          mkdir -p sbom
+          syft ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG \
+            -o spdx-json=sbom/frontend-${TAG}.spdx.json
 
       - name: Scan frontend image (Trivy)
         run: |
@@ -93,33 +141,197 @@ jobs:
         run: |
           docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG || (sleep 5 && docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG)
 
+      - name: Sign and verify frontend image (Cosign)
+        if: steps.cosign_config.outputs.enabled == 'true'
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.FRONTEND_IMAGE_NAME }}:$TAG"
+          cosign sign --yes --key env://COSIGN_PRIVATE_KEY "$IMAGE"
+          cosign verify --key env://COSIGN_PUBLIC_KEY "$IMAGE"
+          cosign attest --yes --key env://COSIGN_PRIVATE_KEY --predicate "sbom/frontend-${TAG}.spdx.json" --type spdx "$IMAGE"
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.run_id }}-${{ github.run_attempt }}
+          path: sbom/*.spdx.json
+          if-no-files-found: error
+
       - name: Update deployment image
         run: |
           sed -i "/name: ${{ env.REGISTRY }}\\/${{ env.REGISTRY_OWNER }}\\/${{ env.BACKEND_IMAGE_NAME }}/{n;s/newTag:.*/newTag: $TAG/;}" k8s/kustomization.yaml
           sed -i "/name: ${{ env.REGISTRY }}\\/${{ env.REGISTRY_OWNER }}\\/${{ env.FRONTEND_IMAGE_NAME }}/{n;s/newTag:.*/newTag: $TAG/;}" k8s/kustomization.yaml
 
+      - name: Sync backend secrets from GitHub secrets
+        env:
+          BACKEND_MONGO_URI: ${{ secrets.BACKEND_MONGO_URI }}
+          BACKEND_ADMIN_API_KEY: ${{ secrets.BACKEND_ADMIN_API_KEY }}
+          BACKEND_EMAIL: ${{ secrets.BACKEND_EMAIL }}
+          BACKEND_EMAIL_PASS: ${{ secrets.BACKEND_EMAIL_PASS }}
+        run: |
+          MISSING=0
+          for VAR_NAME in BACKEND_MONGO_URI BACKEND_ADMIN_API_KEY BACKEND_EMAIL BACKEND_EMAIL_PASS; do
+            if [ -z "${!VAR_NAME}" ]; then
+              echo "Missing GitHub secret: $VAR_NAME"
+              MISSING=1
+            fi
+          done
+
+          if [ "$MISSING" -eq 1 ]; then
+            echo "Skipping secret sync because one or more backend secrets are missing."
+            echo "Configure BACKEND_MONGO_URI, BACKEND_ADMIN_API_KEY, BACKEND_EMAIL, BACKEND_EMAIL_PASS in GitHub secrets."
+            exit 0
+          fi
+
+          kubectl create namespace external-secrets --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create namespace linuxspec-prod --dry-run=client -o yaml | kubectl apply -f -
+
+          kubectl create secret generic backend-secrets-source \
+            -n external-secrets \
+            --from-literal=MONGO_URI="$BACKEND_MONGO_URI" \
+            --from-literal=ADMIN_API_KEY="$BACKEND_ADMIN_API_KEY" \
+            --from-literal=EMAIL="$BACKEND_EMAIL" \
+            --from-literal=EMAIL_PASS="$BACKEND_EMAIL_PASS" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          kubectl create secret generic backend-secret \
+            -n linuxspec-prod \
+            --from-literal=MONGO_URI="$BACKEND_MONGO_URI" \
+            --from-literal=ADMIN_API_KEY="$BACKEND_ADMIN_API_KEY" \
+            --from-literal=EMAIL="$BACKEND_EMAIL" \
+            --from-literal=EMAIL_PASS="$BACKEND_EMAIL_PASS" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          if kubectl get crd externalsecrets.external-secrets.io >/dev/null 2>&1; then
+            kubectl apply -k k8s/security/external-secrets
+          else
+            echo "External Secrets CRD is not installed yet. Apply skipped."
+          fi
+
       - name: Apply Kubernetes manifests
         run: |
+          TOKEN="${{ secrets.GHCR_TOKEN != '' && secrets.GHCR_TOKEN || github.token }}"
+          USERNAME="${{ secrets.GHCR_USERNAME != '' && secrets.GHCR_USERNAME || env.REGISTRY_OWNER }}"
+          kubectl create namespace linuxspec-prod --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create secret docker-registry ghcr-secret \
+            -n linuxspec-prod \
+            --docker-server="${{ env.REGISTRY }}" \
+            --docker-username="$USERNAME" \
+            --docker-password="$TOKEN" \
+            --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -k k8s
+
+      - name: Enforce Sigstore include label only in linuxspec-prod
+        run: |
+          kubectl label namespace linuxspec-prod policy.sigstore.dev/include=true --overwrite
+          kubectl label namespace default policy.sigstore.dev/include- || true
+
+      - name: Apply Sigstore image policy
+        run: |
+          kubectl apply -k k8s/security/image-signing
+          kubectl get clusterimagepolicy linuxspec-signed-images
+
+      - name: Sigstore admission negative test (must deny unsigned image)
+        run: |
+          cat <<'EOF' | kubectl apply -f -
+          apiVersion: policy.sigstore.dev/v1beta1
+          kind: ClusterImagePolicy
+          metadata:
+            name: ci-negative-busybox-policy
+          spec:
+            images:
+              - glob: "docker.io/library/busybox:*"
+            authorities:
+              - key:
+                  data: |-
+                    ${{ secrets.COSIGN_PUBLIC_KEY }}
+          EOF
+
+          set +e
+          kubectl run ci-sigstore-negative \
+            -n linuxspec-prod \
+            --image=docker.io/library/busybox:1.36 \
+            --restart=Never \
+            --dry-run=server -o yaml >/tmp/ci-sigstore-negative.out 2>&1
+          STATUS=$?
+          set -e
+
+          kubectl delete clusterimagepolicy ci-negative-busybox-policy --ignore-not-found=true
+
+          if [ "$STATUS" -eq 0 ]; then
+            echo "Negative Sigstore admission test unexpectedly passed."
+            cat /tmp/ci-sigstore-negative.out
+            exit 1
+          fi
+
+          if ! grep -Eiq "denied|policy.sigstore.dev|signature|cosign" /tmp/ci-sigstore-negative.out; then
+            echo "Negative Sigstore admission test failed for an unexpected reason."
+            cat /tmp/ci-sigstore-negative.out
+            exit 1
+          fi
+
+      - name: Sigstore admission positive test (must allow signed image)
+        run: |
+          kubectl run ci-sigstore-positive \
+            -n linuxspec-prod \
+            --image=${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.BACKEND_IMAGE_NAME }}:$TAG \
+            --restart=Never \
+            --dry-run=server -o yaml >/tmp/ci-sigstore-positive.out
+          grep -q "name: ci-sigstore-positive" /tmp/ci-sigstore-positive.out
 
       - name: Wait for rollout
         run: |
-          kubectl rollout status deployment/linuxspec-backend
-          kubectl rollout status deployment/linuxspec-frontend
+          kubectl rollout status deployment/linuxspec-backend -n linuxspec-prod
+          kubectl rollout status deployment/linuxspec-frontend -n linuxspec-prod
 
       - name: Smoke test services
         run: |
           SMOKE_POD="ci-smoke-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          kubectl delete pod ci-smoke --ignore-not-found=true
-          kubectl delete pod "$SMOKE_POD" --ignore-not-found=true
-          kubectl run "$SMOKE_POD" --image=curlimages/curl:8.10.1 --restart=Never --command -- sh -c \
+          kubectl delete pod ci-smoke -n linuxspec-prod --ignore-not-found=true
+          kubectl delete pod "$SMOKE_POD" -n linuxspec-prod --ignore-not-found=true
+          kubectl run "$SMOKE_POD" -n linuxspec-prod --labels=purpose=smoke-test --image=curlimages/curl:8.10.1 --restart=Never --command -- sh -c \
             "curl -fsS http://linuxspec-backend/health/ready && curl -fsS http://linuxspec-frontend/" 
-          kubectl wait --for=condition=Ready "pod/$SMOKE_POD" --timeout=60s || true
-          kubectl logs "$SMOKE_POD"
-          kubectl delete pod "$SMOKE_POD" --ignore-not-found=true
+          kubectl wait -n linuxspec-prod --for=condition=Ready "pod/$SMOKE_POD" --timeout=60s || true
+          kubectl logs -n linuxspec-prod "$SMOKE_POD"
+          kubectl delete pod -n linuxspec-prod "$SMOKE_POD" --ignore-not-found=true
+
+      - name: DAST baseline scan (OWASP ZAP) - frontend
+        run: |
+          mkdir -p security-reports
+          docker run --rm -v "$PWD:/zap/wrk/:rw" ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t https://linuxspec.com \
+            -m 5 \
+            -c /zap/wrk/.zap/rules.tsv \
+            -I \
+            -r security-reports/zap-frontend.html \
+            -J security-reports/zap-frontend.json
+
+      - name: DAST baseline scan (OWASP ZAP) - backend
+        run: |
+          mkdir -p security-reports
+          docker run --rm -v "$PWD:/zap/wrk/:rw" ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t https://api.linuxspec.com \
+            -m 5 \
+            -c /zap/wrk/.zap/rules.tsv \
+            -I \
+            -r security-reports/zap-backend.html \
+            -J security-reports/zap-backend.json
+
+      - name: Upload DAST reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dast-${{ github.run_id }}-${{ github.run_attempt }}
+          path: security-reports/*
+          if-no-files-found: error
 
       - name: Rollback on failure
         if: failure()
         run: |
-          kubectl rollout undo deployment/linuxspec-backend
-          kubectl rollout undo deployment/linuxspec-frontend || true
+          kubectl rollout undo deployment/linuxspec-backend -n linuxspec-prod
+          kubectl rollout undo deployment/linuxspec-frontend -n linuxspec-prod || true

@@ -34,3 +34,20 @@ export async function sendLeadEmails(lead) {
     text: "Thanks for reaching out. We will review your setup and reply with cost optimization insights."
   });
 }
+
+export async function sendSmokeEmail(metadata = {}) {
+  const transporter = getTransporter();
+  if (!transporter) {
+    throw new Error("Email transporter not configured");
+  }
+
+  const requestedBy = metadata.requestedBy || "unknown";
+  const environment = process.env.NODE_ENV || "development";
+
+  await transporter.sendMail({
+    from: process.env.EMAIL,
+    to: process.env.EMAIL,
+    subject: "Smoke test - linuxspec backend",
+    text: `Email smoke test succeeded.\nEnvironment: ${environment}\nRequested by: ${requestedBy}\nTimestamp: ${new Date().toISOString()}`
+  });
+}

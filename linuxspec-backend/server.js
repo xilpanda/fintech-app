@@ -2,6 +2,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import rateLimit from "express-rate-limit";
+import helmet from "helmet";
 import mongoose from "mongoose";
 import client from "prom-client";
 
@@ -11,6 +12,7 @@ import leadRoutes from "./routes/leads.js";
 dotenv.config();
 
 const app = express();
+app.disable("x-powered-by");
 
 client.collectDefaultMetrics();
 
@@ -27,9 +29,24 @@ const httpRequestDurationSeconds = new client.Histogram({
   buckets: [0.05, 0.1, 0.2, 0.5, 1, 2, 5]
 });
 
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_ORIGIN || "http://localhost:3000"
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    }
+  })
+);
+app.use(
+  helmet({
+    contentSecurityPolicy: false
   })
 );
 app.use(express.json({ limit: "256kb" }));
@@ -84,6 +101,13 @@ app.get("/health/ready", (_req, res) => {
 app.get("/metrics", async (_req, res) => {
   res.set("Content-Type", client.register.contentType);
   res.end(await client.register.metrics());
+});
+
+app.use((error, _req, res, next) => {
+  if (error instanceof SyntaxError && error.status === 400 && "body" in error) {
+    return res.status(400).json({ error: "Invalid JSON payload" });
+  }
+  return next(error);
 });
 
 const PORT = Number(process.env.PORT || 5000);

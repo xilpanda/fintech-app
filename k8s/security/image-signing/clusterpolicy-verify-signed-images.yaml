@@ -1,0 +1,15 @@
+apiVersion: policy.sigstore.dev/v1beta1
+kind: ClusterImagePolicy
+metadata:
+  name: linuxspec-signed-images
+spec:
+  images:
+    - glob: "ghcr.io/xilpanda/linuxspec-backend:*"
+    - glob: "ghcr.io/xilpanda/linuxspec-frontend:*"
+  authorities:
+    - key:
+        data: |-
+          -----BEGIN PUBLIC KEY-----
+          MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEJ4wWV2jXK4U98hD8AMtPm8B3CN2t
+          NcY5ikPqkfDX5J0WhyfWTZPfCprcl3HemhX5b/g/2BssKOzEXNUXgcYopg==
+          -----END PUBLIC KEY-----

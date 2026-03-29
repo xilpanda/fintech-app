@@ -12,14 +12,14 @@ spec:
         - alert: LinuxspecBackendDown
           expr: |
             (
-              sum(up{job="linuxspec-backend", namespace="default"})
+              sum(up{job="linuxspec-backend", namespace="linuxspec-prod"})
               or on() vector(0)
             ) < 1
           for: 1m
           labels:
             severity: critical
             service: linuxspec-backend
-            namespace: default
+            namespace: linuxspec-prod
           annotations:
             summary: "Linuxspec backend is down"
             description: "Prometheus cannot scrape linuxspec-backend for at least 1 minute."
@@ -29,7 +29,7 @@ spec:
             histogram_quantile(
               0.95,
               sum by (le) (
-                rate(http_request_duration_seconds_bucket{job="linuxspec-backend", namespace="default"}[5m])
+                rate(http_request_duration_seconds_bucket{job="linuxspec-backend", namespace="linuxspec-prod"}[5m])
               )
             ) > 0.5
           for: 10m
@@ -43,9 +43,9 @@ spec:
         - alert: LinuxspecBackendHighErrorRate
           expr: |
             (
-              sum(rate(http_requests_total{job="linuxspec-backend", namespace="default", status_code=~"5.."}[5m]))
+              sum(rate(http_requests_total{job="linuxspec-backend", namespace="linuxspec-prod", status_code=~"5.."}[5m]))
               /
-              clamp_min(sum(rate(http_requests_total{job="linuxspec-backend", namespace="default"}[5m])), 0.001)
+              clamp_min(sum(rate(http_requests_total{job="linuxspec-backend", namespace="linuxspec-prod"}[5m])), 0.001)
             ) > 0.05
           for: 10m
           labels:
@@ -59,7 +59,7 @@ spec:
           expr: |
             sum(
               rate(container_cpu_usage_seconds_total{
-                namespace="default",
+                namespace="linuxspec-prod",
                 pod=~"linuxspec-backend-.*",
                 container="linuxspec-backend"
               }[5m])
@@ -76,7 +76,7 @@ spec:
           expr: |
             sum(
               container_memory_working_set_bytes{
-                namespace="default",
+                namespace="linuxspec-prod",
                 pod=~"linuxspec-backend-.*",
                 container="linuxspec-backend"
               }
@@ -92,7 +92,7 @@ spec:
         - alert: LinuxspecBackendRestartSpike
           expr: |
             increase(kube_pod_container_status_restarts_total{
-              namespace="default",
+              namespace="linuxspec-prod",
               pod=~"linuxspec-backend-.*",
               container="linuxspec-backend"
             }[10m]) > 1
