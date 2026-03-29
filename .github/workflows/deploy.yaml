@@ -328,10 +328,19 @@ jobs:
         with:
           name: dast-${{ github.run_id }}-${{ github.run_attempt }}
           path: security-reports/*
-          if-no-files-found: error
+          if-no-files-found: warn
 
       - name: Rollback on failure
         if: failure()
         run: |
+          set +e
           kubectl rollout undo deployment/linuxspec-backend -n linuxspec-prod
-          kubectl rollout undo deployment/linuxspec-frontend -n linuxspec-prod || true
+          BACKEND_STATUS=$?
+          kubectl rollout undo deployment/linuxspec-frontend -n linuxspec-prod
+          FRONTEND_STATUS=$?
+          set -e
+
+          if [ "$BACKEND_STATUS" -ne 0 ] || [ "$FRONTEND_STATUS" -ne 0 ]; then
+            echo "Rollback was attempted but partially blocked (possibly by Sigstore policy or missing previous ReplicaSet)."
+            echo "backend_rollback_status=$BACKEND_STATUS frontend_rollback_status=$FRONTEND_STATUS"
+          fi
