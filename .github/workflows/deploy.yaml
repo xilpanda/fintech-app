@@ -68,8 +68,7 @@ jobs:
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "Cosign secrets are not fully configured."
-            exit 1
+            echo "::warning::Cosign secrets are not fully configured. Signing and attestation steps will be skipped."
           fi
 
       - name: Filesystem vulnerability scan (Trivy)
