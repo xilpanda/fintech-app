@@ -217,6 +217,17 @@ jobs:
             echo "External Secrets CRD is not installed yet. Apply skipped."
           fi
 
+      - name: Scope Sigstore admission before deploy
+        run: |
+          kubectl create namespace linuxspec-prod --dry-run=client -o yaml | kubectl apply -f -
+          if [ "${{ steps.cosign_config.outputs.enabled }}" = "true" ]; then
+            kubectl label namespace linuxspec-prod policy.sigstore.dev/include=true --overwrite
+            kubectl label namespace default policy.sigstore.dev/include- || true
+          else
+            kubectl label namespace linuxspec-prod policy.sigstore.dev/include- || true
+            kubectl label namespace default policy.sigstore.dev/include- || true
+          fi
+
       - name: Apply Kubernetes manifests
         run: |
           TOKEN="${{ secrets.GHCR_TOKEN != '' && secrets.GHCR_TOKEN || github.token }}"
@@ -229,18 +240,6 @@ jobs:
             --docker-password="$TOKEN" \
             --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -k k8s
-
-      - name: Enforce Sigstore include label only in linuxspec-prod
-        if: steps.cosign_config.outputs.enabled == 'true'
-        run: |
-          kubectl label namespace linuxspec-prod policy.sigstore.dev/include=true --overwrite
-          kubectl label namespace default policy.sigstore.dev/include- || true
-
-      - name: Disable Sigstore include label when signing is disabled
-        if: steps.cosign_config.outputs.enabled != 'true'
-        run: |
-          kubectl label namespace linuxspec-prod policy.sigstore.dev/include- || true
-          kubectl label namespace default policy.sigstore.dev/include- || true
 
       - name: Apply Sigstore image policy
         if: steps.cosign_config.outputs.enabled == 'true'
