@@ -226,6 +226,7 @@ jobs:
           else
             kubectl label namespace linuxspec-prod policy.sigstore.dev/include- || true
             kubectl label namespace default policy.sigstore.dev/include- || true
+            kubectl delete clusterimagepolicy linuxspec-signed-images --ignore-not-found=true
           fi
 
       - name: Apply Kubernetes manifests
