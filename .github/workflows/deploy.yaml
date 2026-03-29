@@ -303,6 +303,24 @@ jobs:
           kubectl rollout status deployment/linuxspec-backend -n linuxspec-prod
           kubectl rollout status deployment/linuxspec-frontend -n linuxspec-prod
 
+      - name: Collect rollout diagnostics on failure
+        if: failure()
+        run: |
+          echo "=== Deployment status ==="
+          kubectl -n linuxspec-prod get deploy linuxspec-backend linuxspec-frontend -o wide || true
+          echo "=== ReplicaSets ==="
+          kubectl -n linuxspec-prod get rs -l app=linuxspec-backend -o wide || true
+          echo "=== Pods ==="
+          kubectl -n linuxspec-prod get pods -l app=linuxspec-backend -o wide || true
+          echo "=== Backend deployment describe ==="
+          kubectl -n linuxspec-prod describe deployment linuxspec-backend || true
+          echo "=== Recent backend pod logs ==="
+          POD_NAME="$(kubectl -n linuxspec-prod get pods -l app=linuxspec-backend -o jsonpath='{.items[-1:].metadata.name}' 2>/dev/null || true)"
+          if [ -n "$POD_NAME" ]; then
+            kubectl -n linuxspec-prod logs "$POD_NAME" --tail=200 || true
+            kubectl -n linuxspec-prod logs "$POD_NAME" --previous --tail=200 || true
+          fi
+
       - name: Smoke test services
         run: |
           SMOKE_POD="ci-smoke-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
