@@ -167,7 +167,6 @@ jobs:
           if-no-files-found: error
 
       - name: Update deployment image
-        if: steps.cosign_config.outputs.enabled == 'true'
         run: |
           sed -i "/name: ${{ env.REGISTRY }}\\/${{ env.REGISTRY_OWNER }}\\/${{ env.BACKEND_IMAGE_NAME }}/{n;s/newTag:.*/newTag: $TAG/;}" k8s/kustomization.yaml
           sed -i "/name: ${{ env.REGISTRY }}\\/${{ env.REGISTRY_OWNER }}\\/${{ env.FRONTEND_IMAGE_NAME }}/{n;s/newTag:.*/newTag: $TAG/;}" k8s/kustomization.yaml
@@ -231,7 +230,6 @@ jobs:
           fi
 
       - name: Apply Kubernetes manifests
-        if: steps.cosign_config.outputs.enabled == 'true'
         run: |
           TOKEN="${{ secrets.GHCR_TOKEN != '' && secrets.GHCR_TOKEN || github.token }}"
           USERNAME="${{ secrets.GHCR_USERNAME != '' && secrets.GHCR_USERNAME || env.REGISTRY_OWNER }}"
@@ -243,11 +241,6 @@ jobs:
             --docker-password="$TOKEN" \
             --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -k k8s
-
-      - name: Skip deploy when Cosign signing is disabled
-        if: steps.cosign_config.outputs.enabled != 'true'
-        run: |
-          echo "::warning::Cosign signing is disabled. Skipping Kubernetes deploy, rollout, and smoke test steps."
 
       - name: Apply Sigstore image policy
         if: steps.cosign_config.outputs.enabled == 'true'
@@ -306,13 +299,11 @@ jobs:
           grep -q "name: ci-sigstore-positive" /tmp/ci-sigstore-positive.out
 
       - name: Wait for rollout
-        if: steps.cosign_config.outputs.enabled == 'true'
         run: |
           kubectl rollout status deployment/linuxspec-backend -n linuxspec-prod
           kubectl rollout status deployment/linuxspec-frontend -n linuxspec-prod
 
       - name: Smoke test services
-        if: steps.cosign_config.outputs.enabled == 'true'
         run: |
           SMOKE_POD="ci-smoke-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           kubectl delete pod ci-smoke -n linuxspec-prod --ignore-not-found=true
