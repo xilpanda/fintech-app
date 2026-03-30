@@ -11,6 +11,8 @@ spec:
       app: linuxspec-backend
   template:
     metadata:
+      annotations:
+        linkerd.io/inject: disabled
       labels:
         app: linuxspec-backend
     spec:
