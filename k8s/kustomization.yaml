@@ -17,6 +17,6 @@ resources:
 - security/network
 images:
 - name: ghcr.io/xilpanda/linuxspec-frontend
-  newTag: ca20942
+  newTag: 68c0e48
 - name: ghcr.io/xilpanda/linuxspec-backend
   newTag: 68c0e48
