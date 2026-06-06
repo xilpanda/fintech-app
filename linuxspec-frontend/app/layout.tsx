@@ -1,17 +1,27 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap"
+});
 
 export const metadata: Metadata = {
-  title: "linuxspec | FinOps + Platform Engineering + Security",
+  title: "linuxspec | Penetration Testing & IT Security",
   description:
-    "FinOps, Platform Engineering, and Security services for teams that need lower cloud costs, faster delivery, and secure fintech infrastructure.",
+    "Professional penetration testing, vulnerability analysis, and IT security consulting. Discover vulnerabilities before hackers do.",
   keywords: [
-    "finops",
-    "cloud cost optimization",
-    "platform engineering",
-    "kubernetes",
-    "security hardening",
-    "fintech infrastructure"
+    "penetration testing",
+    "pentest",
+    "vulnerability analysis",
+    "ethical hacking",
+    "IT security",
+    "NIS2 compliance",
+    "red team"
   ]
 };
 
@@ -19,8 +29,12 @@ export default function RootLayout({
   children
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className={inter.variable}>
+      <body className="font-sans">
+        <Header />
+        {children}
+        <Footer />
+      </body>
     </html>
   );
 }

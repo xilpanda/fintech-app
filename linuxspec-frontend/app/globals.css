@@ -2,23 +2,75 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background: #f6f9fc;
-  color: #1a1f36;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-page text-heading antialiased;
+  }
+
+  ::selection {
+    background: rgba(230, 57, 70, 0.35);
+    color: #fff;
+  }
 }
 
-html {
-  scroll-behavior: smooth;
+@layer components {
+  .section-container {
+    @apply mx-auto w-full max-w-7xl px-6 md:px-10 lg:px-16;
+  }
+
+  .section-eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.2em] text-accent;
+  }
+
+  .section-title {
+    @apply text-3xl font-bold tracking-tight text-heading md:text-4xl lg:text-[2.75rem];
+  }
+
+  .section-subtitle {
+    @apply section-eyebrow;
+  }
+
+  .section-desc {
+    @apply text-base leading-relaxed text-muted md:text-lg;
+  }
+
+  .section-divider {
+    @apply border-t border-border/60;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(230,57,70,0.25)] transition hover:bg-accent-hover hover:-translate-y-px;
+  }
+
+  .btn-enterprise {
+    @apply inline-flex items-center justify-center rounded-sm border border-border bg-panel px-7 py-3 text-xs font-semibold uppercase tracking-[0.1em] text-heading transition hover:border-muted hover:bg-card;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-sm border border-border bg-panel px-6 py-3 text-sm font-semibold text-heading transition hover:border-muted hover:bg-card;
+  }
+
+  .card-surface {
+    @apply rounded-sm border border-border/80 bg-card;
+  }
+
+  .card-enterprise {
+    @apply rounded-sm border border-border bg-panel p-8 transition duration-300 hover:border-border hover:bg-card;
+  }
+
+  .trust-badge {
+    @apply inline-flex items-center gap-2 rounded-sm border border-border bg-panel px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted;
+  }
 }
 
-.card {
-  @apply rounded-2xl border border-gray-800 bg-panel/70 p-6;
-}
-
-@keyframes timelineFadeUp {
+@keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -26,7 +78,39 @@ html {
   }
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
 .timeline-card {
   opacity: 0;
-  animation: timelineFadeUp 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: fadeInUp 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }

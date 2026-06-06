@@ -10,10 +10,10 @@ type Metric = {
 };
 
 const metrics: Metric[] = [
-  { value: 40, label: "Cloud cost optimization target", suffix: "%" },
-  { value: 99.99, label: "Uptime and reliability objective", suffix: "%", decimals: 2 },
-  { value: 10, label: "Transaction request capacity model", suffix: "k+" },
-  { value: 24, label: "Monitoring and alerting operations", suffix: "/7" }
+  { value: 500, label: "Security assessments delivered", suffix: "+" },
+  { value: 100, label: "Client retention rate", suffix: "%" },
+  { value: 15, label: "Years of combined experience", suffix: "+" },
+  { value: 24, label: "Response time for urgent requests", suffix: "h" }
 ];
 
 function formatMetric(value: number, decimals = 0) {
@@ -76,15 +76,15 @@ export default function AnimatedMetrics() {
   );
 
   return (
-    <section ref={containerRef} className="mx-auto w-full max-w-7xl px-6 py-10 md:px-10 lg:px-16">
-      <div className="grid gap-4 rounded-3xl border border-[#dbe4f3] bg-white p-8 text-center shadow-[0_14px_34px_rgba(10,37,64,0.08)] md:grid-cols-4">
+    <section ref={containerRef} className="section-container py-12">
+      <div className="grid gap-px overflow-hidden rounded-sm border border-border/80 bg-border/40 text-center md:grid-cols-4">
         {renderedMetrics.map((item) => (
           <div
             key={item.label}
-            className="rounded-xl border border-transparent p-2 transition hover:-translate-y-1 hover:border-[#dbe4f3] hover:shadow-[0_14px_30px_rgba(10,37,64,0.10)]"
+            className="bg-panel p-8 transition hover:bg-card"
           >
-            <p className="text-4xl font-bold text-[#0a2540]">{item.rendered}</p>
-            <p className="mt-1 text-sm text-[#586791]">{item.label}</p>
+            <p className="text-4xl font-bold tracking-tight text-accent">{item.rendered}</p>
+            <p className="mt-2 text-xs font-medium uppercase tracking-wider text-muted">{item.label}</p>
           </div>
         ))}
       </div>

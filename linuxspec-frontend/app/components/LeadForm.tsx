@@ -4,22 +4,39 @@ import { FormEvent, useState } from "react";
 
 type Step = 1 | 2;
 
+const serviceOptions = [
+  "Penetration Testing",
+  "Vulnerability Analysis",
+  "Compliance & NIS2",
+  "Security Training",
+  "AI System Testing",
+  "Red Team / TLPT",
+  "Other"
+];
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:5000";
 
 export default function LeadForm() {
   const [step, setStep] = useState<Step>(1);
-  const [monthlyCost, setMonthlyCost] = useState("1000");
+  const [serviceType, setServiceType] = useState("Penetration Testing");
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
-  const [honeypot, setHoneypot] = useState(""); // hidden anti-spam field
+  const [consent, setConsent] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!consent) {
+      setStatus("Please accept the privacy consent to continue.");
+      return;
+    }
+
     setLoading(true);
     setStatus("");
     try {
@@ -30,8 +47,8 @@ export default function LeadForm() {
           name,
           company,
           email,
-          message,
-          monthlyCost: Number(monthlyCost),
+          message: `[${serviceType}] ${phone ? `Phone: ${phone}. ` : ""}${message}`,
+          monthlyCost: 0,
           honeypot
         })
       });
@@ -39,13 +56,15 @@ export default function LeadForm() {
       if (!response.ok) {
         throw new Error(payload?.error || "Submit failed");
       }
-      setStatus("Saved. We will contact you shortly.");
+      setStatus("Thank you! We will contact you shortly.");
       setStep(1);
       setName("");
       setCompany("");
+      setPhone("");
       setEmail("");
       setMessage("");
-      setMonthlyCost("1000");
+      setConsent(false);
+      setServiceType("Penetration Testing");
       setHoneypot("");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Server error");
@@ -55,67 +74,77 @@ export default function LeadForm() {
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="mx-auto w-full max-w-2xl rounded-2xl border border-[#dbe4f3] bg-white p-6 shadow-[0_12px_30px_rgba(10,37,64,0.08)]"
-    >
-      <h3 className="text-2xl font-semibold text-[#0a2540]">
-        Get Your Free FinOps and Security Audit (24h)
-      </h3>
-      <p className="mt-2 text-[#5b6c96]">
-        Step {step}/2 - takes 30 seconds. Actionable insights, no commitment.
+    <form onSubmit={onSubmit} className="mx-auto w-full max-w-2xl rounded-sm border border-border/80 bg-card p-8 md:p-10">
+      <h3 className="text-2xl font-semibold text-heading">Contact Us</h3>
+      <p className="mt-2 text-sm text-muted">
+        Step {step}/2 - tell us what you need and we will get back to you promptly.
       </p>
 
       {step === 1 ? (
-        <div className="mt-6 space-y-3">
-          <label className="block text-sm text-[#44527f]">What is your monthly cloud cost (EUR)?</label>
-          <input
-            required
-            min={100}
-            step={50}
-            type="number"
-            value={monthlyCost}
-            onChange={(e) => setMonthlyCost(e.target.value)}
-            className="w-full rounded-xl border border-[#ccdaee] bg-[#f8fbff] px-4 py-3 text-[#1a1f36]"
-          />
+        <div className="mt-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-muted">
+              What service are you interested in?
+            </label>
+            <select
+              required
+              value={serviceType}
+              onChange={(e) => setServiceType(e.target.value)}
+              className="mt-1.5 w-full rounded-lg border border-border bg-panel px-4 py-3 text-heading outline-none transition focus:border-accent"
+            >
+              {serviceOptions.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </div>
           <button
             type="button"
             onClick={() => setStep(2)}
-            className="rounded-xl bg-[#635bff] px-5 py-3 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#4f46e5]"
+            className="btn-primary w-full"
           >
-            Continue to Contact Details
+            Continue
           </button>
         </div>
       ) : (
-        <div className="mt-6 space-y-3">
-          <label className="block text-sm text-[#44527f]">Where should we send your report?</label>
+        <div className="mt-6 space-y-4">
           <input
+            required
             type="text"
-            placeholder="Name"
+            placeholder="Name *"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-xl border border-[#ccdaee] bg-[#f8fbff] px-4 py-3 text-[#1a1f36]"
+            className="w-full rounded-lg border border-border bg-panel px-4 py-3 text-heading outline-none transition focus:border-accent"
           />
           <input
             type="text"
-            placeholder="Company (optional)"
+            placeholder="Company"
             value={company}
             onChange={(e) => setCompany(e.target.value)}
-            className="w-full rounded-xl border border-[#ccdaee] bg-[#f8fbff] px-4 py-3 text-[#1a1f36]"
+            className="w-full rounded-lg border border-border bg-panel px-4 py-3 text-heading outline-none transition focus:border-accent"
+          />
+          <input
+            required
+            type="tel"
+            placeholder="Phone *"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full rounded-lg border border-border bg-panel px-4 py-3 text-heading outline-none transition focus:border-accent"
           />
           <input
             required
             type="email"
-            placeholder="Email"
+            placeholder="Email *"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl border border-[#ccdaee] bg-[#f8fbff] px-4 py-3 text-[#1a1f36]"
+            className="w-full rounded-lg border border-border bg-panel px-4 py-3 text-heading outline-none transition focus:border-accent"
           />
           <textarea
-            placeholder="Message (optional)"
+            placeholder="Message"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="h-28 w-full rounded-xl border border-[#ccdaee] bg-[#f8fbff] px-4 py-3 text-[#1a1f36]"
+            className="h-28 w-full rounded-lg border border-border bg-panel px-4 py-3 text-heading outline-none transition focus:border-accent"
           />
           <input
             type="text"
@@ -125,26 +154,44 @@ export default function LeadForm() {
             onChange={(e) => setHoneypot(e.target.value)}
             className="hidden"
           />
+
+          <label className="flex items-start gap-3 text-sm text-muted">
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={(e) => setConsent(e.target.checked)}
+              className="mt-1 accent-accent"
+            />
+            <span>
+              I consent to linuxspec handling my personal data to respond to my inquiry.
+              I have read and understood the Privacy Statement and give my consent voluntarily.
+            </span>
+          </label>
+
           <div className="flex gap-3">
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="rounded-xl border border-[#c5d3ea] bg-white px-5 py-3 text-[#0a2540] transition hover:-translate-y-0.5"
+              className="btn-secondary flex-1"
             >
               Back
             </button>
             <button
               disabled={loading}
               type="submit"
-              className="rounded-xl bg-[#635bff] px-5 py-3 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#4f46e5] disabled:opacity-60"
+              className="btn-primary flex-1 disabled:opacity-60"
             >
-              {loading ? "Sending..." : "Request Audit"}
+              {loading ? "Sending..." : "Send Message"}
             </button>
           </div>
         </div>
       )}
 
-      {status ? <p className="mt-4 text-sm text-[#4a5b89]">{status}</p> : null}
+      {status ? (
+        <p className={`mt-4 text-sm ${status.includes("Thank") ? "text-teal" : "text-accent"}`}>
+          {status}
+        </p>
+      ) : null}
     </form>
   );
 }

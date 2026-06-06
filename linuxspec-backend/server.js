@@ -29,7 +29,7 @@ const httpRequestDurationSeconds = new client.Histogram({
   buckets: [0.05, 0.1, 0.2, 0.5, 1, 2, 5]
 });
 
-const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:3000")
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:3001")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
