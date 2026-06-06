@@ -19,4 +19,4 @@ images:
 - name: ghcr.io/xilpanda/linuxspec-frontend
   newTag: ca20942
 - name: ghcr.io/xilpanda/linuxspec-backend
-  newTag: f9c27de
+  newTag: 68c0e48
